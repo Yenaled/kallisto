@@ -76,6 +76,7 @@ struct ProgramOptions {
   std::vector<std::string> batch_ids;
   std::vector<std::string> files;
   std::vector<std::string> umi_files;
+  std::vector<std::string> barcodes;
   bool plaintext;
   bool write_index;
   bool single_end;
@@ -98,6 +99,7 @@ struct ProgramOptions {
   std::string bedFile;
   std::string technology;
   std::string tagsequence;
+  std::string bcWhitelistFile;
   std::string tccFile;
   std::string ecFile;
   std::string fldFile;

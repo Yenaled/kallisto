@@ -640,7 +640,7 @@ void ParseOptionsBus(int argc, char **argv, ProgramOptions& opt) {
   int tag_strand_FR_flag = 0;
   int tag_strand_RF_flag = 0;
 
-  const char *opt_string = "i:o:x:t:lbng:c:T:";
+  const char *opt_string = "i:o:x:t:lbng:c:T:w:";
   static struct option long_options[] = {
     {"verbose", no_argument, &verbose_flag, 1},
     {"index", required_argument, 0, 'i'},
@@ -657,6 +657,7 @@ void ParseOptionsBus(int argc, char **argv, ProgramOptions& opt) {
     {"tag-fr-stranded", no_argument, &tag_strand_FR_flag, 1},
     {"tag-rf-stranded", no_argument, &tag_strand_RF_flag, 1},
     {"paired", no_argument, &paired_end_flag, 1},
+    {"whitelist", required_argument, 0, 'w'},
     {0,0,0,0}
   };
 
@@ -712,6 +713,10 @@ void ParseOptionsBus(int argc, char **argv, ProgramOptions& opt) {
     }
     case 'T': {
       stringstream(optarg) >> opt.tagsequence;
+      break;
+    }
+    case 'w': {
+      stringstream(optarg) >> opt.bcWhitelistFile;
       break;
     }
     default: break;
@@ -1251,7 +1256,26 @@ bool CheckOptionsBus(ProgramOptions& opt) {
     }
   }
 
-  
+  if (!opt.bcWhitelistFile.empty()) {
+    struct stat stFileInfo;
+    auto intStat = stat(opt.bcWhitelistFile.c_str(), &stFileInfo);
+    if (intStat != 0) {
+      cerr << ERROR_STR << " Barcode whitelist file not found " << opt.bcWhitelistFile << endl;
+      ret = false;
+    } else {
+      std::ifstream bcfile(opt.bcWhitelistFile);
+      std::string line;
+      std::string bc;
+      while (std::getline(bcfile,line)) {
+        if (line.size() == 0) {
+          continue;
+        }
+        std::stringstream ss(line);
+        ss >> bc;
+        opt.barcodes.push_back(bc);
+      }
+    }
+  }
 
   if (ret && !opt.bam && opt.files.size() %  opt.busOptions.nfiles != 0) {
     cerr << "Error: Number of files (" << opt.files.size() << ") does not match number of input files required by "
@@ -2084,7 +2108,10 @@ void usageBus() {
        << "    --tag-fr-stranded         Strand specific reads for 5′ tagged UMI reads, first read forward" << endl
        << "    --tag-rf-stranded         Strand specific reads for 5′ tagged UMI reads, first read reverse" << endl
        << "    --paired                  Treat reads as paired" << endl
-       << "    --verbose                 Print out progress information every 1M proccessed reads" << endl;
+       << "    --verbose                 Print out progress information every 1M proccessed reads" << endl
+       << "-w, --whitelist=STRING        File of whitelisted barcodes" << endl
+       << "                              (required to record individual cells' fragment length distributions" << endl
+       << "                              for technologies that produce non-UMI full-length reads)" << endl;
 }
 
 void usageIndex() {
@@ -2407,13 +2434,26 @@ int main(int argc, char *argv[]) {
           index.write((opt.output + "/index.saved"), false);
           // Write out fragment length distribution:
           std::ofstream flensout_f((opt.output + "/flens.txt"));
-          for ( size_t i = 0 ; i < fld.size(); ++i ) {
-            if (i != 0) {
-              flensout_f << " ";
+          if (opt.barcodes.size() == 0) { // Write out a single distribution
+            for ( size_t i = 0 ; i < fld.size(); ++i ) {
+              if (i != 0) {
+                flensout_f << " ";
+              }
+              flensout_f << fld[i];
             }
-            flensout_f << fld[i];
+            flensout_f << "\n";
+          } else { // Write out one distribution per barcode
+            for (auto &bc : opt.barcodes) {
+              fld = MP.barcodeFlens[bc];
+              for ( size_t i = 0 ; i < fld.size(); ++i ) {
+                if (i != 0) {
+                  flensout_f << " ";
+                }
+                flensout_f << fld[i];
+              }
+              flensout_f << "\n";
+            }
           }
-          flensout_f << "\n";
           flensout_f.close();
         }
 

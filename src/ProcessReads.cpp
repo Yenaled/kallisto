@@ -1629,12 +1629,13 @@ void BUSProcessor::processBuffer() {
       //ec = tc.findEC(u);
 
       if (busopt.paired && ignore_umi) {
-        if (findFragmentLength && flengoal > 0 && 0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
+        if (/*findFragmentLength && flengoal > 0 && */0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
           // try to map the reads
           int tl = index.mapPair(seq, seqlen, seq2, seqlen2, ec);
           if (0 < tl && tl < flens.size()) {
-            flens[tl]++;
-            flengoal--;
+            b.flags = tl; // Added
+            //flens[tl]++;
+            //flengoal--;
           }
         }
       }

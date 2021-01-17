@@ -202,6 +202,11 @@ public:
         busf_out.open(opt.output + "/output.bus", std::ios::out | std::ios::binary);
         
         writeBUSHeader(busf_out, opt.busOptions.getBCLength(), opt.busOptions.getUMILength());
+        if (opt.barcodes.size() != 0) {
+          for (auto &bc : opt.barcodes) {
+            barcodeFlens.insert({bc,std::vector<int>(1000,0)});
+          }
+        }
       }
     }
 
@@ -252,6 +257,7 @@ public:
   std::vector<int> tlencounts;
   std::atomic<int> biasCount;
   std::vector<std::vector<int>> batchFlens;
+  std::unordered_map<std::string, std::vector<int>> barcodeFlens;
   std::vector<std::vector<std::pair<int32_t, int32_t>>> batchCounts;
   std::vector<std::vector<int32_t>> tmp_bc;
   const int maxBiasCount;
