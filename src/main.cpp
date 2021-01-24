@@ -380,7 +380,7 @@ void ParseOptionsEMOnly(int argc, char **argv, ProgramOptions& opt) {
 }
 
 void ParseOptionsTCCQuant(int argc, char **argv, ProgramOptions& opt) {
-  const char *opt_string = "o:i:c:e:f:l:s:t:g:G:b:d:";
+  const char *opt_string = "o:i:c:e:f:l:s:t:g:G:b:d:r:";
   static struct option long_options[] = {
     {"index", required_argument, 0, 'i'},
     {"tcc", required_argument, 0, 'c'},
@@ -394,6 +394,7 @@ void ParseOptionsTCCQuant(int argc, char **argv, ProgramOptions& opt) {
     {"gtf", required_argument, 0, 'G'},
     {"bootstrap-samples", required_argument, 0, 'b'},
     {"seed", required_argument, 0, 'd'},
+    {"effective-lengths", required_argument, 0, 'r'},
     {0,0,0,0}
   };
   int c;
@@ -454,6 +455,10 @@ void ParseOptionsTCCQuant(int argc, char **argv, ProgramOptions& opt) {
     }
     case 'd': {
       stringstream(optarg) >> opt.seed;
+      break;
+    }
+    case 'r': {
+      stringstream(optarg) >> opt.effLenFile;
       break;
     }
     default: break;
@@ -1567,6 +1572,15 @@ bool CheckOptionsTCCQuant(ProgramOptions& opt) {
     }
   }
   
+  if (!opt.effLenFile.empty()) {
+    struct stat stFileInfo;
+    auto intStat = stat(opt.effLenFile.c_str(), &stFileInfo);
+    if (intStat != 0) {
+      cerr << ERROR_STR << " file for mapping transcripts with effective lengths not found " << opt.effLenFile << endl;
+      ret = false;
+    }
+  }
+  
   if ((opt.fld != 0.0 || opt.sd != 0.0) && !opt.fldFile.empty()) {
     cerr << ERROR_STR <<" cannot supply mean or sd while also supplying a fragment length distribution file" << endl;
     ret = false;
@@ -2235,7 +2249,9 @@ void usageTCCQuant(bool valid_input = true) {
        << "-G, --gtf=FILE                GTF file for transcriptome information" << endl
        << "                              (can be used instead of --genemap for obtaining gene-level abundances)" << endl
        << "-b, --bootstrap-samples=INT   Number of bootstrap samples (default: 0)" << endl
-       << "    --seed=INT                Seed for the bootstrap sampling (default: 42)" << endl;
+       << "    --seed=INT                Seed for the bootstrap sampling (default: 42)" << endl
+       << "-r, --effective-lengths=FILE  File containing transcript names with their associated effective lengths" << endl
+       << "                              (default: effective lengths are estimated internally)" << endl;
 }
 
 std::string argv_to_string(int argc, char *argv[]) {

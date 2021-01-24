@@ -11,6 +11,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <unordered_map>
 
 // smallest weight we expect is ~10^-4
 // on most machines, TOLERANCE should be 2.22045e-15
@@ -42,8 +43,42 @@ struct EMAlgorithm {
     opt(opt)
   {
     assert(all_fl_means.size() == index_.target_lens_.size());
-    eff_lens_ = calc_eff_lens(index_.target_lens_, all_fl_means);
-    weight_map_ = calc_weights (tc_.counts, ecmap_, eff_lens_);    
+    std::unordered_map<std::string, double> effLenMap;
+    if (!opt.effLenFile.empty()) {
+      std::ifstream inf((opt.effLenFile));
+      if (inf.is_open()) {
+        std::string line;
+        while (getline(inf, line)) {
+          if (line.empty()) {
+            continue;
+          }
+          std::stringstream ss(line);
+          std::string txname;
+          double efflen;
+          ss >> txname >> efflen;
+          effLenMap.insert({txname, efflen});
+        }
+      } else {
+        std::cerr << "Error: could not open file " << opt.effLenFile << std::endl;
+        exit(1);
+      }
+      std::vector<double> eff_lens;
+      eff_lens.reserve( index_.target_names_.size() );
+      for (size_t i = 0; i < index_.target_names_.size(); ++i) {
+        std::string curr_target = index_.target_names_[i];
+        if (effLenMap.find(curr_target) == effLenMap.end())
+        {
+          std::cerr << "Error: could not open find effective length of transcript " << curr_target << std::endl;
+          exit(1);
+        }
+        double cur_eff_len = effLenMap[curr_target];
+        eff_lens.push_back( cur_eff_len );
+      }
+      eff_lens_ = eff_lens;
+    } else {
+      eff_lens_ = calc_eff_lens(index_.target_lens_, all_fl_means);
+    }
+    weight_map_ = calc_weights (tc_.counts, ecmap_, eff_lens_);
     assert(target_names_.size() == eff_lens_.size());
   }
 
