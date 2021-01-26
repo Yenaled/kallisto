@@ -1629,7 +1629,7 @@ void BUSProcessor::processBuffer() {
       
       //ec = tc.findEC(u);
 
-      if (busopt.paired && !ignore_umi) {
+      if (busopt.paired/* && !ignore_umi*/) {
         if (/*findFragmentLength && flengoal > 0 && */0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
           // try to map the reads
           int tl = index.mapPair(seq, seqlen, seq2, seqlen2, ec);
