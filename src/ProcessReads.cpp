@@ -1618,6 +1618,7 @@ void BUSProcessor::processBuffer() {
       b.flags = 0;
       b.barcode = stringToBinary(bc, blen, f);
       b.flags |= f;
+      b.flags = 0; // Addition
       b.UMI = check_tag_sequence ? umi_binary : stringToBinary(umi, umilen, f);
       b.flags |= (f) << 8;
       b.count = 1;
@@ -1632,9 +1633,9 @@ void BUSProcessor::processBuffer() {
         if (/*findFragmentLength && flengoal > 0 && */0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
           // try to map the reads
           int tl = index.mapPair(seq, seqlen, seq2, seqlen2, ec);
-          if (0 < tl && tl < flens.size()) {
+          if (0 < tl) {
             b.flags = tl; // Added
-            if (findFragmentLength && flengoal > 0) {
+            if (findFragmentLength && flengoal > 0 && tl < flens.size()) {
               flens[tl]++;
               flengoal--;
             }
