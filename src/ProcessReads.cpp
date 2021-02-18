@@ -1309,6 +1309,8 @@ BUSProcessor::BUSProcessor(const KmerIndex& index, const ProgramOptions& opt, co
    newEcs.reserve(1000);
    bv.reserve(1000);
    counts.reserve((int) (tc.counts.size() * 1.25));
+   flens_lr.resize(index.num_trans,0);
+   flens_lr_c.resize(index.num_trans,0);
    memset(&bc_len[0],0,33);
    memset(&umi_len[0],0,33);
 
@@ -1332,6 +1334,8 @@ BUSProcessor::BUSProcessor(BUSProcessor && o) :
   flags(std::move(o.flags)),
   newEcs(std::move(o.newEcs)),
   flens(std::move(o.flens)),
+  flens_lr(std::move(o.flens_lr)),
+  flens_lr_c(std::move(o.flens_lr_c)),
   bias5(std::move(o.bias5)),
   bv(std::move(o.bv)),  
   counts(std::move(o.counts)) {
@@ -1646,13 +1650,15 @@ void BUSProcessor::processBuffer() {
           if (0 < tl && tl < flens.size()) {
             flens[tl]++;
             flengoal--;
-            std::cout << tl << ":" << u[0] << std::endl;
+            if (flengoal > 0) {
+              std::cout << ":" << tl << u[0] << ":" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
+            }
           }
           if (0 < tl) {
-            std::cout << "::" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
+            //std::cout << "::" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
             flens_lr[u[0]] += tl; // TODO: test this
             flens_lr_c[u[0]]++; // TODO: test this
-            std::cout << ":::" << std::endl;
+            //std::cout << ":::" << std::endl;
           }
         }
       }
