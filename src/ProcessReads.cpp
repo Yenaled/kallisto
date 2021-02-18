@@ -1640,15 +1640,18 @@ void BUSProcessor::processBuffer() {
       //ec = tc.findEC(u);
 
       if (busopt.paired && ignore_umi) {
-        if (findFragmentLength && flengoal > 0 && 0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
+        if (findFragmentLength && /*flengoal > 0 && */0 <= ec && ec < index.num_trans && !v.empty() && !v2.empty()) {
           // try to map the reads
           int tl = index.mapPair(seq, seqlen, seq2, seqlen2, ec);
           if (0 < tl && tl < flens.size()) {
             flens[tl]++;
             flengoal--;
+            std::cout << tl << ":" << u[0] << std::endl;
           }
-          flens_lr[u[0]] += tl; // TODO: test this
-          flens_lr_c[u[0]]++; // TODO: test this
+          if (0 < tl) {
+            flens_lr[u[0]] += tl; // TODO: test this
+            flens_lr_c[u[0]]++; // TODO: test this
+          }
         }
       }
       
