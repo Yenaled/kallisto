@@ -2443,6 +2443,12 @@ int main(int argc, char *argv[]) {
           }
           flensout_f << "\n";
           flensout_f.close();
+          // Write out fragment length distribution for individual transcripts:
+          std::ofstream flensout_tx_f((opt.output + "/flens.transcripts.txt"));
+          for ( size_t i = 0 ; i < collection.flens_lr.size(); ++i ) {
+            flensout_tx_f << collection.flens_lr[i] << " " << collection.flens_lr_c[i] << "\n";
+          }
+          flensout_tx_f.close();
         }
 
         // gather stats

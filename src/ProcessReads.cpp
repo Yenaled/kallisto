@@ -733,7 +733,7 @@ void MasterProcessor::processAln(const EMAlgorithm& em, bool useEM = true) {
 
 void MasterProcessor::update(const std::vector<int>& c, const std::vector<std::vector<int> > &newEcs, 
                             std::vector<std::pair<int, std::string>>& ec_umi, std::vector<std::pair<std::vector<int>, std::string>> &new_ec_umi, 
-                            int n, std::vector<int>& flens, std::vector<int> &bias, const PseudoAlignmentBatch& pseudobatch, std::vector<BUSData> &bv, std::vector<std::pair<BUSData, std::vector<int32_t>>> newBP, int *bc_len, int *umi_len,  int id, int local_id) {
+                            int n, std::vector<int>& flens, std::vector<int>& flens_lr, std::vector<int>& flens_lr_c, std::vector<int> &bias, const PseudoAlignmentBatch& pseudobatch, std::vector<BUSData> &bv, std::vector<std::pair<BUSData, std::vector<int32_t>>> newBP, int *bc_len, int *umi_len,  int id, int local_id) {
   // acquire the writer lock
   std::lock_guard<std::mutex> lock(this->writer_lock);
 
@@ -794,6 +794,13 @@ void MasterProcessor::update(const std::vector<int>& c, const std::vector<std::v
         local_tlencount += flens[i];
       }
       tlencount += local_tlencount;
+    }
+  }
+
+  if (!flens_lr.empty()) {
+    for (int i = 0; i < flens_lr.size(); i++) {
+      tc.flens_lr[i] = flens_lr[i];
+      tc.flens_lr_c[i] = flens_lr_c[i];
     }
   }
 
@@ -940,6 +947,8 @@ ReadProcessor::ReadProcessor(const KmerIndex& index, const ProgramOptions& opt, 
    }
    newEcs.reserve(1000);
    counts.reserve((int) (tc.counts.size() * 1.25));
+   flens_lr.resize(index.num_trans,0);
+   flens_lr_c.resize(index.num_trans,0);
    clear();
 }
 
@@ -959,6 +968,8 @@ ReadProcessor::ReadProcessor(ReadProcessor && o) :
   umis(std::move(o.umis)),
   newEcs(std::move(o.newEcs)),
   flens(std::move(o.flens)),
+  flens_lr(std::move(o.flens_lr)),
+  flens_lr_c(std::move(o.flens_lr_c)),
   bias5(std::move(o.bias5)),
   batchSR(std::move(o.batchSR)),
   counts(std::move(o.counts)) {
@@ -1002,7 +1013,7 @@ void ReadProcessor::operator()() {
 
     // update the results, MP acquires the lock
     std::vector<BUSData> tmp_v{};
-    mp.update(counts, newEcs, ec_umi, new_ec_umi, paired ? seqs.size()/2 : seqs.size(), flens, bias5, pseudobatch, tmp_v, std::vector<std::pair<BUSData, std::vector<int32_t>>>{}, nullptr, nullptr, id, local_id);
+    mp.update(counts, newEcs, ec_umi, new_ec_umi, paired ? seqs.size()/2 : seqs.size(), flens, flens_lr, flens_lr_c, bias5, pseudobatch, tmp_v, std::vector<std::pair<BUSData, std::vector<int32_t>>>{}, nullptr, nullptr, id, local_id);
     clear();
   }
 }
@@ -1364,7 +1375,7 @@ void BUSProcessor::operator()() {
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
-    mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
+    mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, flens_lr, flens_lr_c, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
     clear();
   }
 }
@@ -1636,6 +1647,8 @@ void BUSProcessor::processBuffer() {
             flens[tl]++;
             flengoal--;
           }
+          flens_lr[u[0]] += tl; // TODO: test this
+          flens_lr_c[u[0]]++; // TODO: test this
         }
       }
       
