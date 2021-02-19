@@ -1657,6 +1657,18 @@ void BUSProcessor::processBuffer() {
           if (0 < tl) {
             //std::cout << "::" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
             for (int jk = 0; jk < u.size(); jk++) {
+              //flens_lr[u[jk]] += tl; // TODO: test this
+              //flens_lr_c[u[jk]]++; // TODO: test this
+            }
+            //std::cout << ":::" << std::endl;
+          }
+        }
+        if (findFragmentLength && /*flengoal > 0 && */0 <= ec && /*ec < index.num_trans &&*/ !v.empty() && !v2.empty()) {
+          // try to map the reads
+          int tl = index.mapPair(seq, seqlen, seq2, seqlen2, ec);
+          if (0 < tl) {
+            //std::cout << "::" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
+            for (int jk = 0; jk < u.size(); jk++) {
               flens_lr[u[jk]] += tl; // TODO: test this
               flens_lr_c[u[jk]]++; // TODO: test this
             }
