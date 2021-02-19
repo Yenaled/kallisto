@@ -1656,8 +1656,10 @@ void BUSProcessor::processBuffer() {
           }
           if (0 < tl) {
             //std::cout << "::" << u.size() << ":" << flens_lr.size() << ":" << flens_lr_c.size() << std::endl;
-            flens_lr[u[0]] += tl; // TODO: test this
-            flens_lr_c[u[0]]++; // TODO: test this
+            for (int jk = 0; jk < u.size(); jk++) {
+              flens_lr[u[jk]] += tl; // TODO: test this
+              flens_lr_c[u[jk]]++; // TODO: test this
+            }
             //std::cout << ":::" << std::endl;
           }
         }
