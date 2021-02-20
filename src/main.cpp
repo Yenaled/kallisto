@@ -2962,6 +2962,8 @@ int main(int argc, char *argv[]) {
           std::ifstream infld((opt.fldFile));
           if (infld.is_open()) {
             std::string line;
+            flens_lr.clear();
+            flens_lr_c.clear();
             while (getline(infld, line)) {
               if (line.empty() || line.rfind("#", 0) == 0) {
                 continue; // Ignore empty lines or lines that begin with a #
@@ -2979,18 +2981,20 @@ int main(int argc, char *argv[]) {
                 }
                 tmp_vec.push_back(tmp_val_num);
               }
-              if (tmp_vec.size() != MAX_FRAG_LEN) {
+              if (tmp_vec.size() != 2) {
                 std::cerr << "Error: Fragment length distribution file contains a line with " 
-                          << tmp_vec.size() << " values; expected: " << MAX_FRAG_LEN << std::endl;
+                          << tmp_vec.size() << " values; expected: " << 2 << std::endl;
                 exit(1);
               }
               FLDs.push_back(tmp_vec);
+              flens_lr.push_back(tmp_vec[0]);
+              flens_lr_c.push_back(tmp_vec[1]);
             }
-            if (FLDs.size() != 1 && FLDs.size() != nrow) {
+            /*if (FLDs.size() != 1 && FLDs.size() != nrow) {
               std::cerr << "Error: Fragment length distribution file contains " 
                         << i << " valid lines; expected: " << nrow << std::endl;
               exit(1);
-            }
+            }*/
           } else {
             std::cerr << "Error: could not open file " << opt.fldFile << std::endl;
             exit(1);
@@ -3018,13 +3022,15 @@ int main(int argc, char *argv[]) {
             if (opt.fld != 0.0) {
               collection.init_mean_fl_trunc(opt.fld, opt.sd);
             } else {
-              std::vector<int> fld;
+              /*std::vector<int> fld;
               if (FLDs.size() == 1) { // Only one distribution supplied; will use this for everything
                 fld = FLDs[0];
               } else {
                 fld = FLDs[id];
               }
-              collection.flens = fld;
+              //collection.flens = fld;
+              collection.flens_lr = fld[0]; // TODO: ITERATE THROUGH fld
+              collection.flens_lr_c = fld[1]; // TODO:*/
               collection.compute_mean_frag_lens_trunc(false);
             }
             fl_means = get_frag_len_means(index.target_lens_, collection.mean_fl_trunc);
