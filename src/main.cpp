@@ -2962,8 +2962,8 @@ int main(int argc, char *argv[]) {
           std::ifstream infld((opt.fldFile));
           if (infld.is_open()) {
             std::string line;
-            flens_lr.clear();
-            flens_lr_c.clear();
+            collection.flens_lr.clear();
+            collection.flens_lr_c.clear();
             while (getline(infld, line)) {
               if (line.empty() || line.rfind("#", 0) == 0) {
                 continue; // Ignore empty lines or lines that begin with a #
@@ -2987,8 +2987,8 @@ int main(int argc, char *argv[]) {
                 exit(1);
               }
               FLDs.push_back(tmp_vec);
-              flens_lr.push_back(tmp_vec[0]);
-              flens_lr_c.push_back(tmp_vec[1]);
+              collection.flens_lr.push_back(tmp_vec[0]);
+              collection.flens_lr_c.push_back(tmp_vec[1]);
             }
             /*if (FLDs.size() != 1 && FLDs.size() != nrow) {
               std::cerr << "Error: Fragment length distribution file contains " 
