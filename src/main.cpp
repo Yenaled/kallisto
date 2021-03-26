@@ -2153,8 +2153,10 @@ int main(int argc, char *argv[]) {
         /*for (int i = 0; i < collection.bias3.size(); i++) {
           std::cout << i << "\t" << collection.bias3[i] << "\t" << collection.bias5[i] << "\n";
           }*/
-
-        EMAlgorithm em(collection.counts, index, collection, (opt.sd == 1 && opt.fld == 1) ? index.target_lens_ : fl_means, opt);
+        
+        std::vector<double> target_lens_double(index.target_lens_.begin(), index.target_lens_.end());
+        
+        EMAlgorithm em(collection.counts, index, collection, (opt.sd == 1 && opt.fld == 1) ? target_lens_double : fl_means, opt);
         em.run(10000, 50, true, opt.bias);
 
         std::string call = argv_to_string(argc, argv);
