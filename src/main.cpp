@@ -2154,7 +2154,7 @@ int main(int argc, char *argv[]) {
           std::cout << i << "\t" << collection.bias3[i] << "\t" << collection.bias5[i] << "\n";
           }*/
 
-        EMAlgorithm em(collection.counts, index, collection, (opt.sd == 1 && opt.fld == 1) ? index_.target_lens_ : fl_means, opt);
+        EMAlgorithm em(collection.counts, index, collection, (opt.sd == 1 && opt.fld == 1) ? index.target_lens_ : fl_means, opt);
         em.run(10000, 50, true, opt.bias);
 
         std::string call = argv_to_string(argc, argv);
