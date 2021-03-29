@@ -1149,18 +1149,8 @@ bool CheckOptionsBus(ProgramOptions& opt) {
         busopt.seq.push_back(BUSOptionSubstr(2,22,0));
         busopt.seq.push_back(BUSOptionSubstr(3,0,0));
         busopt.umi = BUSOptionSubstr(2,0,19);
-        busopt.bc.push_back(BUSOptionSubstr(0,0,8));
-        busopt.bc.push_back(BUSOptionSubstr(1,0,8));
-        busopt.paired = true;
-        opt.tag_strand_specific = true;
-        opt.tag_strand = ProgramOptions::StrandType::FR;
-      } else if (opt.technology == "SMARTSEQ3_10") {
-        busopt.nfiles = 4;
-        busopt.seq.push_back(BUSOptionSubstr(2,22,0));
-        busopt.seq.push_back(BUSOptionSubstr(3,0,0));
-        busopt.umi = BUSOptionSubstr(2,0,19);
-        busopt.bc.push_back(BUSOptionSubstr(0,0,10));
-        busopt.bc.push_back(BUSOptionSubstr(1,0,10));
+        busopt.bc.push_back(BUSOptionSubstr(0,0,0));
+        busopt.bc.push_back(BUSOptionSubstr(1,0,0));
         busopt.paired = true;
         opt.tag_strand_specific = true;
         opt.tag_strand = ProgramOptions::StrandType::FR;
