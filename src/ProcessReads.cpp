@@ -1520,7 +1520,7 @@ void BUSProcessor::processBuffer() {
         bad_bc = true;
         break;
       }
-      std::cout << bclen << std::endl;
+      std::cout << bclen << ":" << bcc.fileno << ":" << bcc.start << ":" << bcc.stop << std::endl;
       memcpy(bc+blen, s[bcc.fileno] + bcc.start, bclen);
       blen += bclen;
     }
