@@ -1521,6 +1521,7 @@ void BUSProcessor::processBuffer() {
         break;
       }
       std::cout << bclen << ":" << bcc.fileno << ":" << bcc.start << ":" << bcc.stop << std::endl;
+      std::cout << s[bcc.fileno] << std::endl;
       memcpy(bc+blen, s[bcc.fileno] + bcc.start, bclen);
       blen += bclen;
     }
