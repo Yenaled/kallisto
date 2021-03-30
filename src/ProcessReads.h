@@ -199,6 +199,8 @@ public:
         pseudobatchf_out.open(opt.output + "/pseudoaln.bin", std::ios::out | std::ios::binary);
       }
       if (opt.bus_mode) {
+        memset(&bus_bc_len[0],0,33);
+        memset(&bus_umi_len[0],0,33);
         busf_out.open(opt.output + "/output.bus", std::ios::out | std::ios::binary);
         
         writeBUSHeader(busf_out, opt.busOptions.getBCLength(), opt.busOptions.getUMILength());
