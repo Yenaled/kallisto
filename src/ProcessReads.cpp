@@ -1531,11 +1531,11 @@ void BUSProcessor::processBuffer() {
     if (blen >= 0 && blen <= 32) {
       bc_len[blen]++;
     }
-    /* debugging
+    // debugging
     std::cout << "seq " << seq << std::endl;
-    std::cout << "bc  " << bc << std::endl;
+    std::cout << "bc  " << bc << blen << std::endl;
     std::cout << "umi " << umi << std::endl << std::endl;
-    */
+    
 
     numreads++;
     v.clear();
