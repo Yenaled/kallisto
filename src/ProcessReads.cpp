@@ -841,6 +841,7 @@ void MasterProcessor::update(const std::vector<int>& c, const std::vector<std::v
       for (int i = 0; i < 32; i++) {
         bus_bc_len[i] += bc_len[i];
         bus_umi_len[i] += umi_len[i];
+        std::cout << i << ":" << bus_bc_len[i] << ":" << bc_len[i] << std::endl;
       }
     }
 
@@ -1531,11 +1532,11 @@ void BUSProcessor::processBuffer() {
     if (blen >= 0 && blen <= 32) {
       bc_len[blen]++;
     }
-    // debugging
+    /* debugging
     std::cout << "seq " << seq << std::endl;
-    std::cout << "bc  " << bc << blen << std::endl;
+    std::cout << "bc  " << bc << std::endl;
     std::cout << "umi " << umi << std::endl << std::endl;
-    
+    */
 
     numreads++;
     v.clear();

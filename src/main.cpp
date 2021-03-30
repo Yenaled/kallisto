@@ -2361,6 +2361,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i <= 32; i++) {
           if (MP.bus_bc_len[i] > MP.bus_bc_len[bclen]) {
             bclen = i;
+            std::cout << bclen << std::endl;
           }
           if (MP.bus_umi_len[i] > MP.bus_umi_len[umilen]) {
             umilen = i;
@@ -2370,11 +2371,14 @@ int main(int argc, char *argv[]) {
         bool write = false;
         // hack, open the bus file and write over the values in there.
         if (opt.busOptions.getBCLength() == 0) {
+          std::cout << "true1:" << bclen << std::endl;
           if (bclen > 0) {
+            std::cout << "true2:" << bclen << std::endl;
             write = true;
           }
         } else {
           bclen = opt.busOptions.getBCLength();
+          std::cout << "false:" << bclen << std::endl;
         }
         if (opt.busOptions.getUMILength() == 0) {
           if (umilen > 0) {
@@ -2386,6 +2390,7 @@ int main(int argc, char *argv[]) {
         
         
         if (write) {          
+          std::cout << "write:" << bclen << std::endl;
           std::FILE* fp = std::fopen((opt.output + "/output.bus").c_str(), "r+b");
           if (fp != nullptr) {
             std::fseek(fp,8,SEEK_SET); // skip magic string and version
