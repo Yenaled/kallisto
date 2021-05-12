@@ -1449,6 +1449,7 @@ void BUSProcessor::operator()() {
       } else {
         // get new sequences
         mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+        std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
       }
       // release the reader lock
     }
