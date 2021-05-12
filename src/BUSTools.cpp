@@ -14,11 +14,11 @@ void writeBUSHeader(std::ofstream &out, int bclen, int umilen) {
 }
 
 void writeBUSData(std::ofstream &out, const std::vector<BUSData> &bv) {
-  for (const auto &b : bv) {
+  /*for (const auto &b : bv) {
     if (b.ec != -1) { // maybe keep non-mapping reads ?!?
       out.write((char*)(&b), sizeof(b));
     }
-  }
+  }*/
 }
 
 void writeBUSMatrix(const std::string &filename,
