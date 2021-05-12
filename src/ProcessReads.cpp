@@ -1448,8 +1448,10 @@ void BUSProcessor::operator()() {
         return;
       } else {
         // get new sequences
+        std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
         mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
-        std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
+        std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+        std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
       }
       // release the reader lock
     }
@@ -1457,16 +1459,20 @@ void BUSProcessor::operator()() {
     pseudobatch.aln.clear();
     pseudobatch.batch_id = readbatch_id;
     // process our sequences
+    std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
     std::cout << "BufferStart" << readbatch_id << " : " << system_clock::now() << std::endl;
     processBuffer();
-    std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
+    std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
+    std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
     std::cout << "UpdateStart" << readbatch_id << " : " << system_clock::now() << std::endl;
     mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
-    std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
+    std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
+    std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     clear();
   }
 }
