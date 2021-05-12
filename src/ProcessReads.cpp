@@ -1457,7 +1457,9 @@ void BUSProcessor::operator()() {
     pseudobatch.aln.clear();
     pseudobatch.batch_id = readbatch_id;
     // process our sequences
+    std::cout << "BufferStart" << readbatch_id << " : " << system_clock::now() << std::endl;
     processBuffer();
+    std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
 
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
@@ -1470,7 +1472,6 @@ void BUSProcessor::operator()() {
 }
 
 void BUSProcessor::processBuffer() {
-    std::cout << "ProcessBufferStart" << id << " : " << system_clock::now() << std::endl;
   // set up thread variables  
   std::vector<std::pair<KmerEntry,int>> v,v2;
   std::vector<int> vtmp;
@@ -1814,7 +1815,6 @@ void BUSProcessor::processBuffer() {
           << "% pseudoaligned)"; std::cerr.flush();
       }
   }
-  std::cout << "ProcessBufferEnd" << id << " : " << system_clock::now() << std::endl;
 }
 
 void BUSProcessor::clear() {
@@ -3240,7 +3240,6 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
       state = false; // haven't opened file yet
     }
   }
-  std::cout << "fetchSequencesEnd" << read_id << " : " << system_clock::now() << std::endl;
 }
 
 // move constructor
