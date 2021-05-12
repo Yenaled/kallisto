@@ -26,7 +26,7 @@
 #include "BUSData.h"
 #include "BUSTools.h"
 #include <htslib/kstring.h>
-#include "date.h"
+#include <chrono>
 #include <iostream>
 
 
