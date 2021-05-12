@@ -26,6 +26,12 @@
 #include "BUSData.h"
 #include "BUSTools.h"
 #include <htslib/kstring.h>
+#include "date.h"
+#include <iostream>
+
+
+using namespace date;
+using namespace std::chrono;
 
 
 void printVector(const std::vector<int>& v, std::ostream& o) {
@@ -1432,12 +1438,15 @@ void BUSProcessor::operator()() {
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
+    std::cout << "UpdateStart" << readbatch_id << " : " << system_clock::now() << std::endl;
     mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
+    std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << std::endl;
     clear();
   }
 }
 
 void BUSProcessor::processBuffer() {
+    std::cout << "ProcessBufferStart" << id << " : " << system_clock::now() << std::endl;
   // set up thread variables  
   std::vector<std::pair<KmerEntry,int>> v,v2;
   std::vector<int> vtmp;
@@ -1781,6 +1790,7 @@ void BUSProcessor::processBuffer() {
           << "% pseudoaligned)"; std::cerr.flush();
       }
   }
+  std::cout << "ProcessBufferEnd" << id << " : " << system_clock::now() << std::endl;
 }
 
 void BUSProcessor::clear() {
@@ -3099,6 +3109,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   std::string umi;
   readbatch_id += 1; // increase the batch id
   read_id = readbatch_id; // copy now because we are inside a lock
+  std::cout << "fetchSequencesStart" << read_id << " : " << system_clock::now() << std::endl;
   seqs.clear();
   umis.clear();
   if (full) {
@@ -3205,6 +3216,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
       state = false; // haven't opened file yet
     }
   }
+  std::cout << "fetchSequencesEnd" << read_id << " : " << system_clock::now() << std::endl;
 }
 
 // move constructor
