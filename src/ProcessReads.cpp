@@ -27,7 +27,6 @@
 #include "BUSTools.h"
 #include <htslib/kstring.h>
 #include <chrono>
-#include <iostream>
 
 
 using namespace std::chrono;
