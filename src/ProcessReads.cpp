@@ -1434,9 +1434,9 @@ void BUSProcessor::operator()() {
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
-    std::chrono::duration<double, std::chrono::nanoseconds> aa;
-    std::chrono::duration<double, std::chrono::nanoseconds> bb;
-    std::chrono::duration<double, std::chrono::nanoseconds> cc;
+    std::chrono::duration<double, std::milli> aa;
+    std::chrono::duration<double, std::milli> bb;
+    std::chrono::duration<double, std::milli> cc;
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
       if (batchSR.empty()) {
@@ -1477,7 +1477,7 @@ void BUSProcessor::operator()() {
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     cc = begin3 - end3;
-    std::cout << "Batch" << readbatch_id << " : " << aa << " :: " << bb << " ::: " << cc << std::endl;
+    std::cout << "Batch" << readbatch_id << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
     clear();
   }
 }
