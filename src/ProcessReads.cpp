@@ -1434,9 +1434,11 @@ void BUSProcessor::operator()() {
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
+    std::chrono::duration<double, std::milli> aa0;
     std::chrono::duration<double, std::milli> aa;
     std::chrono::duration<double, std::milli> bb;
     std::chrono::duration<double, std::milli> cc;
+    std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
       if (batchSR.empty()) {
@@ -1459,6 +1461,8 @@ void BUSProcessor::operator()() {
       }
       // release the reader lock
     }
+    std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
+    aa0 = end0 - begin0;
     
     pseudobatch.aln.clear();
     pseudobatch.batch_id = readbatch_id;
@@ -1466,7 +1470,7 @@ void BUSProcessor::operator()() {
     std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
     processBuffer();
     std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
-    bb = begin2 - end2;
+    bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
     // update the results, MP acquires the lock
@@ -1476,8 +1480,8 @@ void BUSProcessor::operator()() {
     mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
-    cc = begin3 - end3;
-    std::cout << "Batch" << readbatch_id << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
+    cc = end3 - begin3;
+    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
     clear();
   }
 }
