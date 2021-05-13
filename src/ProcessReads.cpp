@@ -1434,9 +1434,9 @@ void BUSProcessor::operator()() {
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
-    std::chrono::duration<std::chrono::nanoseconds> aa;
-    std::chrono::duration<std::chrono::nanoseconds> bb;
-    std::chrono::duration<std::chrono::nanoseconds> cc;
+    std::chrono::duration<double, std::chrono::nanoseconds> aa;
+    std::chrono::duration<double, std::chrono::nanoseconds> bb;
+    std::chrono::duration<double, std::chrono::nanoseconds> cc;
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
       if (batchSR.empty()) {
