@@ -1451,7 +1451,7 @@ void BUSProcessor::operator()() {
         std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
         mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
         std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
-        std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
+        std::cout << "fetchSequencesEnd" << readbatch_id << " : " << bufsize << ":" << seqs.size() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
       }
       // release the reader lock
     }
