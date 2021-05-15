@@ -38,6 +38,15 @@ int64_t ProcessBatchReads(MasterProcessor& MP, const ProgramOptions& opt);
 int64_t ProcessBUSReads(MasterProcessor& MP, const ProgramOptions& opt);
 int findFirstMappingKmer(const std::vector<std::pair<KmerEntry,int>> &v,KmerEntry &val);
 
+struct SequenceData {
+  std::vector<std::pair<const char*, int>> seqs;
+  std::vector<std::pair<const char*, int>> names;
+  std::vector<std::pair<const char*, int>> quals;
+  std::vector<uint32_t> flags;
+  std::vector<std::string> umis;
+  int readbatch_id;
+};
+
 class SequenceReader {
 public:
 
@@ -235,6 +244,7 @@ public:
 
 
   SequenceReader *SR;
+  ReadProcessorV2 rpV2;
   MinCollector& tc;
   KmerIndex& index;
   const Transcriptome& model;
@@ -396,6 +406,36 @@ public:
   void processBufferTrans();
   void processBufferGenome();
   void clear();
+};
+
+class ReadProcessorV2 {
+public:
+  ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp);
+  ReadProcessorV2(ReadProcessorV2 && o);
+  ~ReadProcessorV2();
+  char *buffer;
+  
+  size_t bufsize;
+  const MinCollector& tc;
+  const KmerIndex& index;
+  MasterProcessor& mp;
+  
+  std::vector<std::pair<const char*, int>> seqs;
+  std::vector<std::pair<const char*, int>> names;
+  std::vector<std::pair<const char*, int>> quals;
+  std::vector<uint32_t> flags;
+  std::queue<SequenceData> readStorage;
+  std::mutex readLock;
+  std::condition_variable condReadyToRead;
+  bool finishedReading;
+  
+  void operator()();
+  void clear();
+  bool fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
+                      std::vector<std::pair<const char*, int>>& names,
+                      std::vector<std::pair<const char*, int>>& quals,
+                      std::vector<uint32_t>& flags,
+                      std::vector<std::string>& umis, int &readbatch_id);
 };
 
 

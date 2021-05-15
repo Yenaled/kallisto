@@ -381,14 +381,20 @@ void MasterProcessor::processReads() {
     }
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
-    for (int i = 0; i < opt.threads; i++) {
+    std::cout << "TODO: BEGIN" << std::endl;
+    rpV2 = ReadProcessorV2(index,opt,tc,*this);
+    workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor?
+    /*for (int i = 0; i < opt.threads; i++) {
       workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
-    }
+    }*/
+    // HOW CAN OTHER THREADS in workers access rpV2
     
     // let the workers do their thing
     for (int i = 0; i < opt.threads; i++) {
       workers[i].join(); //wait for them to finish
     }
+    
+    std::cout << "TODO: FINISHED THREAD JOINS" << std::endl;
 
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
@@ -1840,6 +1846,106 @@ void BUSProcessor::clear() {
   counts.resize(tc.counts.size(),0);
   bv.clear();
   newB.clear();
+}
+
+ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp) :
+  tc(tc), index(index), mp(mp), finishedReading(false) {
+  // initialize buffer
+  bufsize = mp.bufsize;
+  buffer = new char[bufsize];
+  seqs.reserve(bufsize/50);
+  clear();
+}
+
+ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
+  tc(o.tc),
+  index(o.index),
+  mp(o.mp),
+  bufsize(o.bufsize),
+  seqs(std::move(o.seqs)), 
+  names(std::move(o.names)),
+  quals(std::move(o.quals)),
+  flags(std::move(o.flags)),
+  finishedReading (false) {
+  buffer = o.buffer;
+  o.buffer = nullptr;
+  o.bufsize = 0;
+}
+
+ReadProcessorV2::~ReadProcessorV2() {
+  if (buffer != nullptr) {
+    delete[] buffer;
+    buffer = nullptr;
+  }
+}
+
+void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
+  while (true) {
+    int readbatch_id;
+    std::vector<std::string> umis;
+    // No reader lock since this should only be one thread
+    if (mp.SR->empty()) {
+      finishedReading = true;
+      condReadyToRead.notify_all();
+      return;
+    } else {
+      // get new sequences
+      std::cout << "TODO: GETTING NEW SEQs" << std::endl;
+      mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
+      SequenceData sData;
+      sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
+      sData.names = std::move(names);
+      sData.quals = std::move(quals);
+      sData.flags = std::move(flags);
+      sData.umis = std::move(umis);
+      sData.readbatch_id = readbatch_id;
+      {
+        std::lock_guard<std::mutex> lock(readLock);
+        readStorage.push_back(sData);
+      }
+      condReadyToRead.notify_one();
+      
+      //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
+    }
+    clear();
+  }
+}
+
+bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
+                    std::vector<std::pair<const char*, int>>& names,
+                    std::vector<std::pair<const char*, int>>& quals,
+                    std::vector<uint32_t>& flags,
+                    std::vector<std::string>& umis, int &readbatch_id) {
+  std::lock_guard<std::mutex> lock(readLock); // TODO: See note below [important]; also mutex is thread-specific so mutex implementation above may need re-working
+  while (true) {
+    if (readStorage.empty()) {
+      if (finishedReading) {
+        return false;
+      } else {
+        condReadyToRead.wait(lock);
+      }
+    } else {
+      break;
+    }
+  }
+  SequenceData sData = std::move(readStorage.front());
+  readStorage.pop();
+  // TODO: MAX CAPACITY FOR QUEUE
+  // TODO: see if RequestShutdown() and finishedReading needed -- e.g. if threads are waiting on V2::fetchSequences but there's nothing left to read (operator returns; but is that enough?)
+  // // // yeah, might need to finishedReading=true up there in the if mp sr empty -- but then again, a thread-safe empty() function might be better
+  seqs = std::move(sData.seqs);
+  names = std::move(sData.names);
+  quals = std::move(sData.quals);
+  flags = std::move(sData.flags);
+  umis = std::move(sData.umis);
+  readbatch_id = sData.readbatch_id;
+  return true;
+} // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
+// Note: impossible to have empty() because empty() can happen while a processor thread is waiting
+// THEREFORE: NEED TO CHECK RETURN VALUE
+
+void ReadProcessorV2::clear() {
+  memset(buffer,0,bufsize);
 }
 
 
