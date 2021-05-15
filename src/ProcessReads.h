@@ -188,6 +188,7 @@ public:
   const MinCollector& tc;
   const KmerIndex& index;
   MasterProcessor& mp;
+  int n;
   
   std::vector<std::pair<const char*, int>> seqs;
   std::vector<std::pair<const char*, int>> names;

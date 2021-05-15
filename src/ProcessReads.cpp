@@ -387,7 +387,8 @@ void MasterProcessor::processReads() {
     //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
     /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
     ReadProcessorV2 rpV2(index,opt,tc,*this);
-    std::cout << "rpv2::  " << rpV2.seqs.size() << std::endl;
+    rpV2.n = 88;
+    std::cout << "rpv2::  " << rpV2.n << std::endl;
     workers.emplace_back(std::thread(std::ref(rpV2)));
     /*for (int i = 0; i < opt.threads; i++) {
       workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
@@ -400,7 +401,7 @@ void MasterProcessor::processReads() {
     }
     
     std::cout << "TODO: FINISHED THREAD JOINS" << std::endl;
-    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.seqs.size() << std::endl;
+    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
 
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
@@ -1887,6 +1888,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
   while (true) {
+    n = 34;
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
