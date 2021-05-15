@@ -382,8 +382,13 @@ void MasterProcessor::processReads() {
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
     std::cout << "TODO: BEGIN" << std::endl;
-    rpV2 = ReadProcessorV2(index,opt,tc,*this);
-    workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor?
+    //rpV2.setup(index,opt,tc,*this);
+    //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
+    //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
+    /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
+    ReadProcessorV2 rpV2(index,opt,tc,*this);
+    std::cout << "rpv2::  " << rpV2.seqs.size() << std::endl;
+    workers.emplace_back(std::thread(std::ref(rpV2)));
     /*for (int i = 0; i < opt.threads; i++) {
       workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
     }*/
@@ -395,6 +400,7 @@ void MasterProcessor::processReads() {
     }
     
     std::cout << "TODO: FINISHED THREAD JOINS" << std::endl;
+    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.seqs.size() << std::endl;
 
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
@@ -1900,8 +1906,8 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.umis = std::move(umis);
       sData.readbatch_id = readbatch_id;
       {
-        std::lock_guard<std::mutex> lock(readLock);
-        readStorage.push_back(sData);
+        std::unique_lock<std::mutex> lock(readLock);
+        readStorage.push(sData);
       }
       condReadyToRead.notify_one();
       
@@ -1916,7 +1922,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
                     std::vector<std::pair<const char*, int>>& quals,
                     std::vector<uint32_t>& flags,
                     std::vector<std::string>& umis, int &readbatch_id) {
-  std::lock_guard<std::mutex> lock(readLock); // TODO: See note below [important]; also mutex is thread-specific so mutex implementation above may need re-working
+  std::unique_lock<std::mutex> lock(readLock); // TODO: See note below [important]; also mutex is thread-specific so mutex implementation above may need re-working
   while (true) {
     if (readStorage.empty()) {
       if (finishedReading) {
@@ -2030,7 +2036,7 @@ void AlnProcessor::operator()() {
     int readbatch_id;
     // grab the reader lock
     if (mp.opt.batch_mode) {
-      std::lock_guard<std::mutex> lock(mp.reader_lock);
+      std::unique_lock<std::mutex> lock(mp.reader_lock);
       if (batchSR.empty()) {
         return;
       } else {
@@ -2040,7 +2046,7 @@ void AlnProcessor::operator()() {
         assert(pseudobatch.aln.size() == ((paired) ? seqs.size()/2 : seqs.size())); // sanity checks
       }
     } else {
-      std::lock_guard<std::mutex> lock(mp.reader_lock);
+      std::unique_lock<std::mutex> lock(mp.reader_lock);
       if (mp.SR->empty()) {
         // nothing to do
         return;

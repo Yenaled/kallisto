@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <queue>
 
 #include <thread>
 #include <mutex>
@@ -176,6 +177,36 @@ private:
   static const std::string seq_enc;
 };
 
+class ReadProcessorV2 {
+public:
+  ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp);
+  ReadProcessorV2(ReadProcessorV2 && o);
+  ~ReadProcessorV2();
+  char *buffer;
+  
+  size_t bufsize;
+  const MinCollector& tc;
+  const KmerIndex& index;
+  MasterProcessor& mp;
+  
+  std::vector<std::pair<const char*, int>> seqs;
+  std::vector<std::pair<const char*, int>> names;
+  std::vector<std::pair<const char*, int>> quals;
+  std::vector<uint32_t> flags;
+  std::queue<SequenceData> readStorage;
+  std::mutex readLock;
+  std::condition_variable condReadyToRead;
+  bool finishedReading;
+  
+  void operator()();
+  void clear();
+  bool fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
+                      std::vector<std::pair<const char*, int>>& names,
+                      std::vector<std::pair<const char*, int>>& quals,
+                      std::vector<uint32_t>& flags,
+                      std::vector<std::string>& umis, int &readbatch_id);
+};
+
 class MasterProcessor {
 public:
   MasterProcessor (KmerIndex &index, const ProgramOptions& opt, MinCollector &tc, const Transcriptome& model)
@@ -244,7 +275,6 @@ public:
 
 
   SequenceReader *SR;
-  ReadProcessorV2 rpV2;
   MinCollector& tc;
   KmerIndex& index;
   const Transcriptome& model;
@@ -408,35 +438,6 @@ public:
   void clear();
 };
 
-class ReadProcessorV2 {
-public:
-  ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp);
-  ReadProcessorV2(ReadProcessorV2 && o);
-  ~ReadProcessorV2();
-  char *buffer;
-  
-  size_t bufsize;
-  const MinCollector& tc;
-  const KmerIndex& index;
-  MasterProcessor& mp;
-  
-  std::vector<std::pair<const char*, int>> seqs;
-  std::vector<std::pair<const char*, int>> names;
-  std::vector<std::pair<const char*, int>> quals;
-  std::vector<uint32_t> flags;
-  std::queue<SequenceData> readStorage;
-  std::mutex readLock;
-  std::condition_variable condReadyToRead;
-  bool finishedReading;
-  
-  void operator()();
-  void clear();
-  bool fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
-                      std::vector<std::pair<const char*, int>>& names,
-                      std::vector<std::pair<const char*, int>>& quals,
-                      std::vector<uint32_t>& flags,
-                      std::vector<std::string>& umis, int &readbatch_id);
-};
 
 
 int fillBamRecord(bam1_t &b, uint8_t* buf, const char *seq, const char *name, const char *qual, int slen, int nlen, bool unmapped, int auxlen);
