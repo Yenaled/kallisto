@@ -388,6 +388,7 @@ void MasterProcessor::processReads() {
     /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
     ReadProcessorV2 rpV2(index,opt,tc,*this);
     rpV2.n = 88;
+    std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
     std::cout << "rpv2::  " << rpV2.n << std::endl;
     workers.emplace_back(std::thread(std::ref(rpV2)));
     /*for (int i = 0; i < opt.threads; i++) {
@@ -400,7 +401,7 @@ void MasterProcessor::processReads() {
       workers[i].join(); //wait for them to finish
     }
     
-    std::cout << "TODO: FINISHED THREAD JOINS" << std::endl;
+    std::cout << "TODO: FINISHED THREAD JOINS" << rpV2.readStorage.size()  << std::endl;
     std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
 
     // now handle the modification of the mincollector
