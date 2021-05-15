@@ -1896,7 +1896,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       return;
     } else {
       // get new sequences
-      std::cout << "TODO: GETTING NEW SEQs" << std::endl;
+      //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
