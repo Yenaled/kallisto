@@ -196,7 +196,8 @@ public:
   std::vector<uint32_t> flags;
   std::queue<SequenceData> readStorage;
   std::mutex readLock;
-  std::condition_variable condReadyToRead;
+  std::condition_variable condReadyToPop;
+  std::condition_variable condReadyToPush;
   bool finishedReading;
   
   void operator()();

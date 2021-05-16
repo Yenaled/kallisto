@@ -1895,7 +1895,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     // No reader lock since this should only be one thread
     if (mp.SR->empty()) {
       finishedReading = true;
-      condReadyToRead.notify_all();
+      condReadyToPop.notify_all();
       return;
     } else {
       // get new sequences
@@ -1910,9 +1910,13 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
+        while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
+          std::cout << "TODO: FULL " << readStorage.size() << std::endl;
+          condReadyToPush.wait(lock);
+        }
         readStorage.push(sData);
       }
-      condReadyToRead.notify_one();
+      condReadyToPop.notify_one();
       
       //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
     }
@@ -1931,7 +1935,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
       if (finishedReading) {
         return false;
       } else {
-        condReadyToRead.wait(lock);
+        condReadyToPop.wait(lock);
       }
     } else {
       break;
@@ -1948,6 +1952,8 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   flags = std::move(sData.flags);
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
+  lock.unlock();
+  condReadyToPush.notify_one();
   return true;
 } // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
 // Note: impossible to have empty() because empty() can happen while a processor thread is waiting
