@@ -383,7 +383,7 @@ void MasterProcessor::processReads() {
     std::vector<std::thread> workers;
     std::cout << "TODO: BEGIN" << std::endl;
     //rpV2.setup(index,opt,tc,*this);
-    //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
+    ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
     //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
     /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
     //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
@@ -1920,12 +1920,6 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
         }*/
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
-        if ((readStorage.size() == mp.opt.threads*2 - 1)) { // TODO: THIS IS A TEMP
-          std::cout << "about to stop at " << readStorage.size() << std::endl;
-        }
-        if (!(readStorage.size() >= mp.opt.threads*2)) { // TODO: THIS IS A TEMP
-        readStorage.push(sData);
-        }
       }
       condReadyToPop.notify_one();
       
