@@ -1467,7 +1467,7 @@ void BUSProcessor::operator()() {
       }
     } else if (mp.useRPV2) {
       std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-      if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) {
+      if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
         return;
       }
       std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
@@ -1507,7 +1507,7 @@ void BUSProcessor::operator()() {
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     cc = end3 - begin3;
-    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
+    //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
     clear();
   }
 }
@@ -1695,11 +1695,11 @@ void BUSProcessor::processBuffer() {
     if (blen >= 0 && blen <= 32) {
       bc_len[blen]++;
     }
-    /* debugging
+    ///* debugging
     std::cout << "seq " << seq << std::endl;
     std::cout << "bc  " << bc << std::endl;
     std::cout << "umi " << umi << std::endl << std::endl;
-    */
+    //*/
 
     numreads++;
     v.clear();
