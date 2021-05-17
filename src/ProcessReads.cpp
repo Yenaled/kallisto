@@ -1918,7 +1918,9 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
           std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }*/
+        if (!(readStorage.size() >= mp.opt.threads*2)) { // TODO: THIS IS A TEMP
         readStorage.push(sData);
+        }
       }
       condReadyToPop.notify_one();
       
