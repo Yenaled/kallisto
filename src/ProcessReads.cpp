@@ -3289,13 +3289,14 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   
   int bufpos = 0;
   int pad = nfiles; //(paired) ? 2 : 1;
-  std::cout << "TODO: " << "fetch" << std::endl; // TODO: verbose [remove]
   while (true) {
     if (!state) { // should we open a file
       if (current_file >= files.size()) {
         // nothing left
+        std::cout << "TODO: " << "fetch1" << std::endl; // TODO: verbose [remove]
         return false;
       } else {
+        std::cout << "TODO: " << "fetch2" << std::endl; // TODO: verbose [remove]
         // close the current files
         for (auto &f : fp) {
           if (f) {
@@ -3324,6 +3325,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         state = true; 
       }
     }
+    std::cout << "TODO: " << "fetch9" << std::endl; // TODO: verbose [remove]
     // the file is open and we have read into seq1 and seq2
     bool all_l = true;
     int bufadd = nfiles;
