@@ -381,32 +381,33 @@ void MasterProcessor::processReads() {
     }
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
-    std::cout << "TODO: BEGIN" << std::endl;
-    //rpV2.setup(index,opt,tc,*this);
-    //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
-    //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
-    /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
-    //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
-    rpV2.n = 88;
-    std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
-    std::cout << "rpv2::  " << rpV2.n << std::endl;
-    workers.emplace_back(std::thread(std::ref(rpV2)));
-    /*for (int i = 1; i < opt.threads; i++) {
-      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
-    }*/
-    /*for (int i = 0; i < opt.threads; i++) {
-      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
-    }*/
-    // HOW CAN OTHER THREADS in workers access rpV2
-    
+    if (opt.threads > 3) {
+      useRPV2 = true;
+      std::cout << "TODO: BEGIN" << std::endl;
+      //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
+      /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
+      //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
+      //rpV2.n = 88;
+      std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
+      //std::cout << "rpv2::  " << rpV2.n << std::endl;
+      workers.emplace_back(std::thread(std::ref(rpV2)));
+      for (int i = 1; i < opt.threads; i++) {
+        workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
+      }
+      
+      std::cout << "TODO: FINISHED THREAD JOINS" << rpV2.readStorage.size()  << std::endl;
+      //std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
+      //delete rpV2;
+    } else {
+      for (int i = 0; i < opt.threads; i++) {
+        workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
+      }
+    }
+
     // let the workers do their thing
     for (int i = 0; i < opt.threads; i++) {
       workers[i].join(); //wait for them to finish
     }
-    
-    std::cout << "TODO: FINISHED THREAD JOINS" << rpV2.readStorage.size()  << std::endl;
-    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
-    //delete rpV2;
     
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
@@ -1464,6 +1465,10 @@ void BUSProcessor::operator()() {
       } else {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
+    } else if (mp.useRPV2) {
+      if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) {
+        return;
+      }
     } else {
       std::lock_guard<std::mutex> lock(mp.reader_lock);
       if (mp.SR->empty()) {
@@ -1897,7 +1902,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
   while (true) {
-    n = 34;
+    //n = 34; // TODO: REMOVE [remove]
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
@@ -1919,10 +1924,10 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
-        /*while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
-          std::cout << "TODO: wait" << std::endl;
+        while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
+          //std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
-        }*/
+        }
         readStorage.push(sData);
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
