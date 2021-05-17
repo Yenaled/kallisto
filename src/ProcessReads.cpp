@@ -1906,6 +1906,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
+    std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
@@ -1972,7 +1973,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   flags = std::move(sData.flags);
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
-  std::cout << ":" << seqs.size() << std::endl; //
+  std::cout << ":" << seqs.size() << std::endl; // correct just like above
   lock.unlock();
   condReadyToPush.notify_one();
   return true;
