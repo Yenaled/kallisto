@@ -3293,10 +3293,8 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
     if (!state) { // should we open a file
       if (current_file >= files.size()) {
         // nothing left
-        std::cout << "TODO: " << "fetch1" << std::endl; // TODO: verbose [remove]
         return false;
       } else {
-        std::cout << "TODO: " << "fetch2" << std::endl; // TODO: verbose [remove]
         // close the current files
         for (auto &f : fp) {
           if (f) {
@@ -3325,7 +3323,6 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         state = true; 
       }
     }
-    std::cout << "TODO: " << "fetch9" << std::endl; // TODO: verbose [remove]
     // the file is open and we have read into seq1 and seq2
     bool all_l = true;
     int bufadd = nfiles;
@@ -3342,9 +3339,11 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         }
         bufadd += 2*pad;
       }
-
+      std::cout << "TODO: " << bufpos << " " << bufadd << " " << limit << std::endl; // TODO: verbose [remove]
+      
       if (bufpos+bufadd< limit) {
-
+        std::cout << "TODO: " << "fetch7" << std::endl; // TODO: verbose [remove]
+        
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
           memcpy(pi, seq[i]->seq.s, l[i]+1);
