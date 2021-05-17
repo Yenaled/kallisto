@@ -383,7 +383,7 @@ void MasterProcessor::processReads() {
     std::vector<std::thread> workers;
     if (opt.threads > 3) {
       useRPV2 = true;
-      std::cout << "TODO: BEGIN" << std::endl;
+      std::cerr << "TODO: BEGIN" << std::endl;
       //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
       /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
       //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
@@ -1918,6 +1918,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       // get new sequences
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
+      std::cout << seqs.size() << std::endl;
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
       sData.names = std::move(names);
