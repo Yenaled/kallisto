@@ -1920,7 +1920,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
         }*/
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
-        if (!(readStorage.size() == mp.opt.threads*2 - 1)) { // TODO: THIS IS A TEMP
+        if ((readStorage.size() == mp.opt.threads*2 - 1)) { // TODO: THIS IS A TEMP
           std::cout << "about to stop at " << readStorage.size() << std::endl;
         }
         if (!(readStorage.size() >= mp.opt.threads*2)) { // TODO: THIS IS A TEMP
