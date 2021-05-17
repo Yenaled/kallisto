@@ -283,6 +283,7 @@ public:
   htsFile *bamfp;
   const int numSortFiles = 32;
   htsFile **bamfps;
+  ReadProcessorV2 *rpV2;
 
   bam_hdr_t *bamh;
   const ProgramOptions& opt;

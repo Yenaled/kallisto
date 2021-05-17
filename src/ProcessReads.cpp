@@ -386,11 +386,14 @@ void MasterProcessor::processReads() {
     //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
     //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
     /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
-    ReadProcessorV2 rpV2(index,opt,tc,*this);
-    rpV2.n = 88;
-    std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
-    std::cout << "rpv2::  " << rpV2.n << std::endl;
-    workers.emplace_back(std::thread(std::ref(rpV2)));
+    rpV2 = new ReadProcessorV2(index,opt,tc,*this);
+    rpV2->n = 88;
+    std::cout << "sz::  " <<  rpV2->readStorage.size() << std::endl;
+    std::cout << "rpv2::  " << rpV2->n << std::endl;
+    workers.emplace_back(std::thread(std::ref(*rpV2)));
+    /*for (int i = 1; i < opt.threads; i++) {
+      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
+    }*/
     /*for (int i = 0; i < opt.threads; i++) {
       workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
     }*/
@@ -401,9 +404,10 @@ void MasterProcessor::processReads() {
       workers[i].join(); //wait for them to finish
     }
     
-    std::cout << "TODO: FINISHED THREAD JOINS" << rpV2.readStorage.size()  << std::endl;
-    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
-
+    std::cout << "TODO: FINISHED THREAD JOINS" << rpV2->readStorage.size()  << std::endl;
+    std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2->n << std::endl;
+    delete rpV2;
+    
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
       auto &u = bus_ecmap[i];
@@ -1911,7 +1915,6 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       {
         std::unique_lock<std::mutex> lock(readLock);
         while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
-          std::cout << "TODO: FULL " << readStorage.size() << std::endl;
           condReadyToPush.wait(lock);
         }
         readStorage.push(sData);
