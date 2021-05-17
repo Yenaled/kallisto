@@ -1695,11 +1695,11 @@ void BUSProcessor::processBuffer() {
     if (blen >= 0 && blen <= 32) {
       bc_len[blen]++;
     }
-    /* debugging
+    ///* debugging
     std::cout << "seq " << seq << std::endl;
     std::cout << "bc  " << bc << std::endl;
     std::cout << "umi " << umi << std::endl << std::endl;
-    */
+    //*/
 
     numreads++;
     v.clear();
@@ -1907,7 +1907,6 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
-    std::unique_lock<std::mutex> lock(readLock);
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
@@ -1929,7 +1928,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.umis = std::move(umis);
       sData.readbatch_id = readbatch_id;
       {
-        //std::unique_lock<std::mutex> lock(readLock);
+        std::unique_lock<std::mutex> lock(readLock);
         while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           //std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
