@@ -1918,7 +1918,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       // get new sequences
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
-      std::cout << seqs.size() << std::endl;
+      //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
       sData.names = std::move(names);
@@ -1972,6 +1972,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   flags = std::move(sData.flags);
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
+  std::cout << ":" << seqs.size() << std::endl; //
   lock.unlock();
   condReadyToPush.notify_one();
   return true;
