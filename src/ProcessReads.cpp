@@ -383,7 +383,7 @@ void MasterProcessor::processReads() {
     std::vector<std::thread> workers;
     std::cout << "TODO: BEGIN" << std::endl;
     //rpV2.setup(index,opt,tc,*this);
-    ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
+    //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
     //workers.emplace_back(std::thread(&rpV2)); // TODO: can we really not put storage in masterprocessor? might need to...
     /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
     //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
@@ -1860,10 +1860,14 @@ void BUSProcessor::clear() {
   newB.clear();
 }
 
-ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp) :
+ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp, const size_t bufsize) :
   tc(tc), index(index), mp(mp), finishedReading(false) {
   // initialize buffer
-  bufsize = mp.bufsize;
+  if (bufsize == 0) {
+    this->bufsize = mp.bufsize;
+  } else {
+    this->bufsize = bufsize;
+  }
   buffer = new char[bufsize];
   seqs.reserve(bufsize/50);
   clear();
@@ -3339,15 +3343,14 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         }
         bufadd += 2*pad;
       }
-      std::cout << "TODO: " << bufpos << " " << bufadd << " " << limit << std::endl; // TODO: verbose [remove] 0 120 0
+      //std::cout << "TODO: " << bufpos << " " << bufadd << " " << limit << std::endl; // TODO: verbose [remove] 0 120 0
       
       if (bufpos+bufadd< limit) {
-        std::cout << "TODO: " << "fetch7" << std::endl; // TODO: verbose [remove]
-        
+
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
           memcpy(pi, seq[i]->seq.s, l[i]+1);
-          std::cout << "TODO: " << seq[i]->seq.s << std::endl; // TODO: verbose [remove]
+          //std::cout << "TODO: " << seq[i]->seq.s << std::endl; // TODO: verbose [remove]
           bufpos += l[i]+1;
           seqs.emplace_back(pi,l[i]);
 
