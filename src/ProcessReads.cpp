@@ -1923,7 +1923,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
           std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }*/
-        //readStorage.push(sData);
+        readStorage.push(sData);
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
       }
@@ -3343,14 +3343,12 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         }
         bufadd += 2*pad;
       }
-      //std::cout << "TODO: " << bufpos << " " << bufadd << " " << limit << std::endl; // TODO: verbose [remove] 0 120 0
-      
+
       if (bufpos+bufadd< limit) {
 
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
           memcpy(pi, seq[i]->seq.s, l[i]+1);
-          //std::cout << "TODO: " << seq[i]->seq.s << std::endl; // TODO: verbose [remove]
           bufpos += l[i]+1;
           seqs.emplace_back(pi,l[i]);
 
