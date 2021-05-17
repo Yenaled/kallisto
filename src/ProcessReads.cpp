@@ -1914,10 +1914,10 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
-        while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
+        /*while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
-        }
+        }*/
         readStorage.push(sData);
       }
       condReadyToPop.notify_one();
