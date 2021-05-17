@@ -213,7 +213,8 @@ class MasterProcessor {
 public:
   MasterProcessor (KmerIndex &index, const ProgramOptions& opt, MinCollector &tc, const Transcriptome& model)
     : tc(tc), index(index), model(model), bamfp(nullptr), bamfps(nullptr), bamh(nullptr), opt(opt), numreads(0)
-    ,nummapped(0), num_umi(0), bufsize(1ULL<<23), tlencount(0), biasCount(0), maxBiasCount((opt.bias) ? 1000000 : 0), last_pseudobatch_id (-1) { 
+    ,nummapped(0), num_umi(0), bufsize(1ULL<<23), tlencount(0), biasCount(0), maxBiasCount((opt.bias) ? 1000000 : 0), last_pseudobatch_id (-1)
+    ,rpV2(index, opt, tc, *this) { 
       if (opt.bam) {
         SR = new BamSequenceReader(opt);
       } else {
@@ -283,7 +284,7 @@ public:
   htsFile *bamfp;
   const int numSortFiles = 32;
   htsFile **bamfps;
-  ReadProcessorV2 *rpV2;
+  ReadProcessorV2 rpV2;
 
   bam_hdr_t *bamh;
   const ProgramOptions& opt;
