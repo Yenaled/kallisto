@@ -3289,6 +3289,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   
   int bufpos = 0;
   int pad = nfiles; //(paired) ? 2 : 1;
+  std::cout << "TODO: " << "fetch" << std::endl; // TODO: verbose [remove]
   while (true) {
     if (!state) { // should we open a file
       if (current_file >= files.size()) {
@@ -3345,7 +3346,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
           memcpy(pi, seq[i]->seq.s, l[i]+1);
-          std::cout << "TODO: " << seq[i]->seq.s << std::endl;
+          std::cout << "TODO: " << seq[i]->seq.s << std::endl; // TODO: verbose [remove]
           bufpos += l[i]+1;
           seqs.emplace_back(pi,l[i]);
 
