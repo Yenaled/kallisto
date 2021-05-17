@@ -1907,6 +1907,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
+    std::unique_lock<std::mutex> lock(readLock);
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
@@ -1921,14 +1922,14 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
-      sData.seqs = seqs; // TODO: will seqs stay or be overwritten when next fetchSequences called???
-      sData.names = names;
-      sData.quals = quals;
-      sData.flags = flags;
-      sData.umis = umis;
+      sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
+      sData.names = std::move(names);
+      sData.quals = std::move(quals);
+      sData.flags = std::move(flags);
+      sData.umis = std::move(umis);
       sData.readbatch_id = readbatch_id;
       {
-        std::unique_lock<std::mutex> lock(readLock);
+        //std::unique_lock<std::mutex> lock(readLock);
         while (readStorage.size() > mp.opt.threads*2) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           //std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
@@ -1962,16 +1963,16 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
       break;
     }
   }
-  SequenceData sData = readStorage.front();
+  SequenceData sData = std::move(readStorage.front());
   readStorage.pop();
   // TODO: MAX CAPACITY FOR QUEUE
   // TODO: see if RequestShutdown() and finishedReading needed -- e.g. if threads are waiting on V2::fetchSequences but there's nothing left to read (operator returns; but is that enough?)
   // // // yeah, might need to finishedReading=true up there in the if mp sr empty -- but then again, a thread-safe empty() function might be better
-  seqs = sData.seqs;
-  names = sData.names;
-  quals = sData.quals;
-  flags = sData.flags;
-  umis = sData.umis;
+  seqs = std::move(sData.seqs);
+  names = std::move(sData.names);
+  quals = std::move(sData.quals);
+  flags = std::move(sData.flags);
+  umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
   std::cout << ":" << seqs.size() << std::endl; // correct just like above
   lock.unlock();
