@@ -1876,9 +1876,8 @@ ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& o
   } else {
     this->bufsize = bufsize;
   }
-  buffer = new char[bufsize];
   seqs.reserve(bufsize/50);
-  clear();
+  //clear();
 }
 
 ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
@@ -1909,6 +1908,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
     int readbatch_id;
     std::vector<std::string> umis;
+    char* buffer = new char[bufsize];
     // No reader lock since this should only be one thread
     if (mp.SR->empty()) {
       std::cout << "TODO: DONE READING" << std::endl;
@@ -1945,7 +1945,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       
       //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
     }
-    clear();
+    //clear();
   }
 }
 
