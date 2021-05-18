@@ -1515,7 +1515,7 @@ void BUSProcessor::operator()() {
     cc = end3 - begin3;
     std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
     aa11 = end11 - begin11;
-    //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
+    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
     clear();
   }
 }
