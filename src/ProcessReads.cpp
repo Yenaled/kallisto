@@ -1914,7 +1914,10 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
-  int storage_limit = mp.opt.threads*5; // TODO: mp.opt.threads+1
+  int storage_limit = mp.opt.threads*2 + 1; // TODO: mp.opt.threads+1
+  //std::chrono::duration<double, std::milli> cc;
+  //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
+  
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
