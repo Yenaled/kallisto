@@ -1913,6 +1913,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
+  int storage_limit = mp.opt.threads;
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
@@ -1950,7 +1951,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
-        while (readStorage.size() > mp.opt.threads+1) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
+        while (readStorage.size() > storage_limit) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           //std::cout << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }
