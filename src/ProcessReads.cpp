@@ -1507,6 +1507,9 @@ void BUSProcessor::operator()() {
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     cc = end3 - begin3;
+    if (mp.useRPV2) {
+      mp.rpV2.freeBuffer(readbatch_id);
+    }
     std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
     clear();
   }
@@ -1877,7 +1880,6 @@ ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& o
     this->bufsize = bufsize;
   }
   seqs.reserve(bufsize/50);
-  //clear();
 }
 
 ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
@@ -1890,16 +1892,14 @@ ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
   quals(std::move(o.quals)),
   flags(std::move(o.flags)),
   finishedReading (false) {
-  buffer = o.buffer;
-  o.buffer = nullptr;
   o.bufsize = 0;
 }
 
 ReadProcessorV2::~ReadProcessorV2() {
-  if (buffer != nullptr) {
+  /*if (buffer != nullptr) {
     delete[] buffer;
     buffer = nullptr;
-  }
+  }*/ // TODO: deallocate all buffers
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
@@ -1908,7 +1908,6 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
     int readbatch_id;
     std::vector<std::string> umis;
-    char* buffer = new char[bufsize];
     // No reader lock since this should only be one thread
     if (mp.SR->empty()) {
       std::cout << "TODO: DONE READING" << std::endl;
@@ -1918,12 +1917,14 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     } else {
       // get new sequences
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
+      char* buffer = new char[bufsize]; // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
+      bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       //std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
-      sData.names = std::move(names);
+      sData.names = std::move(names); // TODO: do we need std::move???
       sData.quals = std::move(quals);
       sData.flags = std::move(flags);
       sData.umis = std::move(umis);
@@ -1987,10 +1988,9 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
 // Note: impossible to have empty() because empty() can happen while a processor thread is waiting
 // THEREFORE: NEED TO CHECK RETURN VALUE
 
-void ReadProcessorV2::clear() {
-  memset(buffer,0,bufsize);
+void ReadProcessorV2::freeBuffer(int readbatch_id) {
+  delete bufferMap[readbatch_id]; // TODO: memset(buffer,0,bufsize);
 }
-
 
 AlnProcessor::AlnProcessor(const KmerIndex& index, const ProgramOptions& opt, MasterProcessor& mp, const EMAlgorithm& em, const Transcriptome &model, bool useEM, int _id) :
  paired(!opt.single_end), index(index), mp(mp), em(em), model(model), useEM(useEM), id(_id) {

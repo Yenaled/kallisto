@@ -10,6 +10,7 @@
 #include <iostream>
 #include <fstream>
 #include <queue>
+#include <map>
 
 #include <thread>
 #include <mutex>
@@ -182,8 +183,7 @@ public:
   ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp, const size_t bufsize = 0);
   ReadProcessorV2(ReadProcessorV2 && o);
   ~ReadProcessorV2();
-  char *buffer;
-  
+
   size_t bufsize;
   const MinCollector& tc;
   const KmerIndex& index;
@@ -194,18 +194,21 @@ public:
   std::vector<std::pair<const char*, int>> quals;
   std::vector<uint32_t> flags;
   std::queue<SequenceData> readStorage;
+  std::queue<char*> availableBuffers;
   std::mutex readLock;
+  std::mutex bufferLock;
+  std::map<int,char*> bufferMap;
   std::condition_variable condReadyToPop;
   std::condition_variable condReadyToPush;
   bool finishedReading;
   
   void operator()();
-  void clear();
   bool fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
                       std::vector<std::pair<const char*, int>>& names,
                       std::vector<std::pair<const char*, int>>& quals,
                       std::vector<uint32_t>& flags,
                       std::vector<std::string>& umis, int &readbatch_id);
+  void freeBuffer(int readbatch_id);
 };
 
 class MasterProcessor {
