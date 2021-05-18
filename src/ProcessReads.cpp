@@ -1695,11 +1695,11 @@ void BUSProcessor::processBuffer() {
     if (blen >= 0 && blen <= 32) {
       bc_len[blen]++;
     }
-    ///* debugging
+    /* debugging
     std::cout << "seq " << seq << std::endl;
     std::cout << "bc  " << bc << std::endl;
     std::cout << "umi " << umi << std::endl << std::endl;
-    //*/
+    */
 
     numreads++;
     v.clear();
@@ -1920,6 +1920,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
+      std::cout << "--" << seqs.size() << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
       sData.names = std::move(names);
@@ -1973,7 +1974,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   flags = std::move(sData.flags);
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
-  std::cout << ":" << seqs.size() << std::endl; // correct just like above
+  std::cout << "__" << seqs.size() << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
   lock.unlock();
   condReadyToPush.notify_one();
   return true;
