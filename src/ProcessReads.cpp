@@ -1453,10 +1453,12 @@ void BUSProcessor::operator()() {
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
+    std::chrono::duration<double, std::milli> aa11;
     std::chrono::duration<double, std::milli> aa0;
     std::chrono::duration<double, std::milli> aa;
     std::chrono::duration<double, std::milli> bb;
     std::chrono::duration<double, std::milli> cc;
+    std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
     std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
@@ -1510,7 +1512,9 @@ void BUSProcessor::operator()() {
     if (mp.useRPV2) {
       mp.rpV2.freeBuffer(readbatch_id);
     }
-    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << std::endl;
+    std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
+    aa11 = end11 - begin11;
+    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
     clear();
   }
 }
@@ -1896,10 +1900,17 @@ ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
 }
 
 ReadProcessorV2::~ReadProcessorV2() {
-  /*if (buffer != nullptr) {
-    delete[] buffer;
-    buffer = nullptr;
-  }*/ // TODO: deallocate all buffers
+  std::cerr << "TODO: available " << availableBuffers.size() << " total " << bufferMap.size() << std::endl;
+  std::map<int, char*>::iterator it;
+  for (it = bufferMap.begin(); it != bufferMap.end(); it++)
+  {
+    std::cerr << "TODO: REMOVAL OF BUFFER " << it->first << std::endl;
+    char *buffer = it->second;
+    if (buffer != nullptr) {
+      delete[] buffer;
+      buffer =  nullptr;
+    }
+  }
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
@@ -1917,9 +1928,18 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     } else {
       // get new sequences
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
-      char* buffer = new char[bufsize]; // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
+      std::unique_lock<std::mutex> lock(bufferLock);
+      if (availableBuffers.size() == 0) {
+        availableBuffers.push(new char[bufsize]);
+        std::cerr << "TODO: NEW BUFFER" << std::endl;
+      }
+      char* buffer = availableBuffers.front(); // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
+      availableBuffers.pop();
+      bufferLock.unlock();
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
+      bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
+      bufferLock.unlock();
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       //std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
@@ -1989,7 +2009,11 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
 // THEREFORE: NEED TO CHECK RETURN VALUE
 
 void ReadProcessorV2::freeBuffer(int readbatch_id) {
-  delete bufferMap[readbatch_id]; // TODO: memset(buffer,0,bufsize);
+  std::unique_lock<std::mutex> lock(bufferLock);
+  char *buffer = bufferMap[readbatch_id];
+  bufferMap.erase(readbatch_id);
+  memset(buffer,0,bufsize);
+  availableBuffers.push(buffer); 
 }
 
 AlnProcessor::AlnProcessor(const KmerIndex& index, const ProgramOptions& opt, MasterProcessor& mp, const EMAlgorithm& em, const Transcriptome &model, bool useEM, int _id) :
