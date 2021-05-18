@@ -1920,7 +1920,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
-      std::cout << "--" << seqs.size() << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
+      std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
       sData.seqs = std::move(seqs); // TODO: will seqs stay or be overwritten when next fetchSequences called???
       sData.names = std::move(names);
@@ -1935,7 +1935,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
           condReadyToPush.wait(lock);
         }
         readStorage.push(sData);
-        std::cout << "zz" << sData.seqs.size() << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
+        std::cout << "zz" << sData.seqs.size() << ":" << &(sData.seqs[0].first) << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
       }
@@ -1965,9 +1965,9 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
     }
   }
   SequenceData sData = std::move(readStorage.front());
-  std::cout << "yy" << sData.seqs.size() << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
+  std::cout << "yy" << sData.seqs.size() << ":" << &(sData.seqs[0].first) << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
   readStorage.pop();
-  std::cout << "xx" << sData.seqs.size() << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
+  std::cout << "xx" << sData.seqs.size() << ":" << &(sData.seqs[0].first) << " " << sData.seqs[0].first << sData.seqs[0].second << " " << sData.seqs[1].first << sData.seqs[1].second << std::endl; // 139810 printed 906 times = good
   // TODO: MAX CAPACITY FOR QUEUE
   // TODO: see if RequestShutdown() and finishedReading needed -- e.g. if threads are waiting on V2::fetchSequences but there's nothing left to read (operator returns; but is that enough?)
   // // // yeah, might need to finishedReading=true up there in the if mp sr empty -- but then again, a thread-safe empty() function might be better
@@ -1977,7 +1977,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   flags = std::move(sData.flags);
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
-  std::cout << "__" << seqs.size() << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
+  std::cout << "__" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
   lock.unlock();
   condReadyToPush.notify_one();
   return true;
