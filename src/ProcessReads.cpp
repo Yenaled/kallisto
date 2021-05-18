@@ -1913,7 +1913,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
-  int storage_limit = mp.opt.threads;
+  int storage_limit = mp.opt.threads+1;
   while (true) {
     //n = 34; // TODO: REMOVE [remove]
     //std::lock_guard<std::mutex> lock(mp.reader_lock); // todo: remove; doesn't help
