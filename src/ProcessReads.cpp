@@ -1901,11 +1901,10 @@ ReadProcessorV2::ReadProcessorV2(ReadProcessorV2 && o) :
 
 ReadProcessorV2::~ReadProcessorV2() {
   std::cerr << "TODO: available " << availableBuffers.size() << " total " << bufferMap.size() << std::endl;
-  std::map<int, char*>::iterator it;
-  for (it = bufferMap.begin(); it != bufferMap.end(); it++)
-  {
-    std::cerr << "TODO: REMOVAL OF BUFFER " << it->first << std::endl;
-    char *buffer = it->second;
+  while (availableBuffers.size() > 0) {
+    char *buffer = availableBuffers.front();
+    std::cerr << "TODO: REMOVAL OF BUFFER " << std::endl;
+    availableBuffers.pop();
     if (buffer != nullptr) {
       delete[] buffer;
       buffer =  nullptr;
