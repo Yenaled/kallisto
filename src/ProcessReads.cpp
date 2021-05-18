@@ -1501,6 +1501,10 @@ void BUSProcessor::operator()() {
     bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
+    if (mp.useRPV2) {
+      mp.rpV2.freeBuffer(readbatch_id);
+    }
+    
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
@@ -1509,9 +1513,6 @@ void BUSProcessor::operator()() {
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     cc = end3 - begin3;
-    if (mp.useRPV2) {
-      mp.rpV2.freeBuffer(readbatch_id);
-    }
     std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
     aa11 = end11 - begin11;
     //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
