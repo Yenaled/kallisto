@@ -1935,7 +1935,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       std::unique_lock<std::mutex> lock(bufferLock);
       if (availableBuffers.size() == 0) {
         availableBuffers.push(new char[bufsize]);
-        std::cerr << "TODO: NEW BUFFER" << std::endl;
+        std::cerr << "TODO: NEW BUFFER" << storage_limit << std::endl;
       }
       char* buffer = availableBuffers.front(); // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
       availableBuffers.pop();
