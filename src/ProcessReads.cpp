@@ -1956,7 +1956,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       {
         std::unique_lock<std::mutex> lock(readLock);
         while (readStorage.size() > storage_limit) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
-          //std::cout << "TODO: wait" << std::endl;
+          std::cerr << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }
         readStorage.push(sData);
