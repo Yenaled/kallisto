@@ -1486,12 +1486,15 @@ void BUSProcessor::operator()() {
     } else {
       //std::lock_guard<std::mutex> lock(mp.reader_lock);
       if (batchSR.empty()) {
+        std::cerr << "emptiness" << std::endl;
         // nothing to do
         return;
       } else {
         // get new sequences
         //std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
+        std::cerr << "BEgIN" << std::endl;
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+        std::cerr << "eND" << std::endl;
         //std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
         //aa = end1 -  begin1;
         //std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
@@ -1515,8 +1518,8 @@ void BUSProcessor::operator()() {
     }
     
     // update the results, MP acquires the lock
-    std::vector<std::pair<int, std::string>> ec_umi;
-    std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
+    //std::vector<std::pair<int, std::string>> ec_umi;
+    //std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
     //std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
     //mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
     //std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
@@ -3384,10 +3387,10 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
     }
     // the file is open and we have read into seq1 and seq2
     bool all_l = true;
-    int bufadd = nfiles;
+    //int bufadd = nfiles;
     for (int i = 0; i < nfiles; i++) {
       all_l = all_l && l[i] >= 0;
-      bufadd += l[i]; // includes seq
+      //bufadd += l[i]; // includes seq
     }
     if (all_l) {      
       // fits into the buffer
@@ -3399,12 +3402,12 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         bufadd += 2*pad;
       }*/
 
-      if (bufpos+bufadd< limit) { // TODO: PUT IT ALL ON STACK
+      //if (bufpos+bufadd< limit) { // TODO: PUT IT ALL ON STACK
 
-        for (int i = 0; i < nfiles; i++) {
-          char *pi = buf + bufpos;
+        //for (int i = 0; i < nfiles; i++) {
+          //char *pi = buf + bufpos;
           //memcpy(pi, seq[i]->seq.s, l[i]+1); // TODO: is this slow?
-          bufpos += l[i]+1;
+          //bufpos += l[i]+1;
           //seqs.emplace_back(pi,l[i]); // TODO: is this slow?
 
           /*if (full) { // TODO:
@@ -3417,7 +3420,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
             bufpos += nl[i]+1;
             names.emplace_back(pi, nl[i]);
           }*/
-        }
+        //}
 
         /*if (usingUMIfiles) { // TODO:
           std::stringstream ss;
@@ -3427,11 +3430,11 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
           umis.emplace_back(std::move(umi));
         }*/
 
-        numreads++;
+        //numreads++;
         //flags.push_back(numreads-1); // TODO: CHANGE
-      } else {
-        return true; // read it next time
-      }
+      //} else {
+      //  return true; // read it next time
+      //}
 
       // read for the next one
       for (int i = 0; i < nfiles; i++) {
