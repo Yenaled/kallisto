@@ -1402,6 +1402,14 @@ BUSProcessor::BUSProcessor(const KmerIndex& index, const ProgramOptions& opt, co
        batchSR.umi_files = {opt.umi_files[id]};
      }
      batchSR.paired = !opt.single_end;
+   } else { // TODO:
+     batchSR.current_file = 0;
+     batchSR.paired = !opt.single_end;
+     batchSR.files = opt.files;
+     batchSR.nfiles = opt.files.size();
+     batchSR.readbatch_id = -1;
+     batchSR.state = false;
+     batchSR.reserveNfiles(opt.files.size());
    }
 
    seqs.reserve(bufsize/50);
@@ -1476,13 +1484,13 @@ void BUSProcessor::operator()() {
       aa = end1 - begin1;
     } else {
       //std::lock_guard<std::mutex> lock(mp.reader_lock);
-      if (mp.SR->empty()) {
+      if (batchSR.empty()) {
         // nothing to do
         return;
       } else {
         // get new sequences
         //std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-        mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+        batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
         //std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
         //aa = end1 -  begin1;
         //std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
