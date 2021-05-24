@@ -1458,8 +1458,8 @@ void BUSProcessor::operator()() {
     std::chrono::duration<double, std::milli> aa;
     std::chrono::duration<double, std::milli> bb;
     std::chrono::duration<double, std::milli> cc;
-    std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
+    //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
+    //std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
       if (batchSR.empty()) {
@@ -1475,30 +1475,30 @@ void BUSProcessor::operator()() {
       std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
       aa = end1 - begin1;
     } else {
-      std::lock_guard<std::mutex> lock(mp.reader_lock);
+      //std::lock_guard<std::mutex> lock(mp.reader_lock);
       if (mp.SR->empty()) {
         // nothing to do
         return;
       } else {
         // get new sequences
-        std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
+        //std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
         mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
-        std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
-        aa = end1 -  begin1;
+        //std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+        //aa = end1 -  begin1;
         //std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
       }
       // release the reader lock
     }
-    std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
-    aa0 = end0 - begin0;
+    //std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
+    //aa0 = end0 - begin0;
     
-    pseudobatch.aln.clear();
-    pseudobatch.batch_id = readbatch_id;
+    //pseudobatch.aln.clear();
+    //pseudobatch.batch_id = readbatch_id;
     // process our sequences
-    std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
+    //std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
     //processBuffer();
-    std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
-    bb = end2 - begin2;
+    //std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    //bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
     if (mp.useRPV2) {
@@ -1508,15 +1508,15 @@ void BUSProcessor::operator()() {
     // update the results, MP acquires the lock
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
-    std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
+    //std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
     //mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
-    std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
+    //std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
-    cc = end3 - begin3;
-    std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
-    aa11 = end11 - begin11;
+    //cc = end3 - begin3;
+    //std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
+    //aa11 = end11 - begin11;
     //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
-    clear();
+    //clear();
   }
 }
 
