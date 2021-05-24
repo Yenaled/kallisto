@@ -3389,23 +3389,23 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
     }
     if (all_l) {      
       // fits into the buffer
-      if (full) {
+      /*if (full) { // TODO:
         for (int i = 0; i < nfiles; i++) {
           nl[i] = seq[i]->name.l;
           bufadd += l[i] + nl[i]; // includes name and qual
         }
         bufadd += 2*pad;
-      }
+      }*/
 
       if (bufpos+bufadd< limit) { // TODO: PUT IT ALL ON STACK
 
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
-          memcpy(pi, seq[i]->seq.s, l[i]+1); // TODO: is this slow?
+          //memcpy(pi, seq[i]->seq.s, l[i]+1); // TODO: is this slow?
           bufpos += l[i]+1;
-          seqs.emplace_back(pi,l[i]); // TODO: is this slow?
+          //seqs.emplace_back(pi,l[i]); // TODO: is this slow?
 
-          if (full) {
+          /*if (full) { // TODO:
             pi = buf + bufpos;
             memcpy(pi, seq[i]->qual.s,l[i]+1);
             bufpos += l[i]+1;
@@ -3414,7 +3414,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
             memcpy(pi, seq[i]->name.s, nl[i]+1);
             bufpos += nl[i]+1;
             names.emplace_back(pi, nl[i]);
-          }
+          }*/
         }
 
         if (usingUMIfiles) {
