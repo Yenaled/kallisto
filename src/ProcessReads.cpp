@@ -1496,7 +1496,7 @@ void BUSProcessor::operator()() {
     pseudobatch.batch_id = readbatch_id;
     // process our sequences
     std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
-    processBuffer();
+    //processBuffer();
     std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
     bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
@@ -1509,13 +1509,13 @@ void BUSProcessor::operator()() {
     std::vector<std::pair<int, std::string>> ec_umi;
     std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
     std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
-    mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
+    //mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
     std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
     cc = end3 - begin3;
     std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
     aa11 = end11 - begin11;
-    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
+    //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
     clear();
   }
 }
