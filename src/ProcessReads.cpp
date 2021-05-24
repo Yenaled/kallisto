@@ -3418,7 +3418,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         }
 
         numreads++;
-        flags.push_back(numreads-1);
+        //flags.push_back(numreads-1);
       } else {
         return true; // read it next time
       }
