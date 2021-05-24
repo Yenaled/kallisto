@@ -3350,7 +3350,12 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   
   int bufpos = 0;
   int pad = nfiles; //(paired) ? 2 : 1;
+  int xx = 0;
   while (true) {
+    if (xx % 100 == 0) {
+      std::cerr << ":" << xx << std::endl;
+    }
+    ++xx;
     if (!state) { // should we open a file
       std::cerr << "STATE FALSE" << current_file << ":" << nfiles << std::endl;
       if (current_file >= files.size()) {
