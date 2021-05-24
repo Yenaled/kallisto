@@ -3389,13 +3389,13 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         bufadd += 2*pad;
       }
 
-      if (bufpos+bufadd< limit) {
+      if (bufpos+bufadd< limit) { // TODO: PUT IT ALL ON STACK
 
         for (int i = 0; i < nfiles; i++) {
           char *pi = buf + bufpos;
-          memcpy(pi, seq[i]->seq.s, l[i]+1);
+          memcpy(pi, seq[i]->seq.s, l[i]+1); // TODO: is this slow?
           bufpos += l[i]+1;
-          seqs.emplace_back(pi,l[i]);
+          seqs.emplace_back(pi,l[i]); // TODO: is this slow?
 
           if (full) {
             pi = buf + bufpos;
@@ -3418,14 +3418,14 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         }
 
         numreads++;
-        //flags.push_back(numreads-1);
+        //flags.push_back(numreads-1); // TODO: CHANGE
       } else {
         return true; // read it next time
       }
 
       // read for the next one
       for (int i = 0; i < nfiles; i++) {
-        l[i] = kseq_read(seq[i]);
+        l[i] = kseq_read(seq[i]); // TODO: READ 4 files at once??? (or see if kseq/htslib/seqtk latest version?)
       }        
     } else {
       state = false; // haven't opened file yet
