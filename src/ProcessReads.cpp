@@ -1458,6 +1458,7 @@ BUSProcessor::~BUSProcessor() {
 }
 
 void BUSProcessor::operator()() {
+  std::cerr << "TODO: LOL" << std::endl;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -3348,6 +3349,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   int pad = nfiles; //(paired) ? 2 : 1;
   while (true) {
     if (!state) { // should we open a file
+      std::cerr << "STATE FALSE" << current_file << ":" << nfiles << std::endl;
       if (current_file >= files.size()) {
         // nothing left
         return false;
@@ -3371,11 +3373,11 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
           l[i] = kseq_read(seq[i]);
           
         }
-        if (usingUMIfiles) {
+        /*if (usingUMIfiles) { // TODO:
           // open new umi file
           f_umi->open(umi_files[current_file]);  
           current_file++;        
-        }
+        }*/
         current_file+=nfiles;
         state = true; 
       }
@@ -3417,13 +3419,13 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
           }*/
         }
 
-        if (usingUMIfiles) {
+        /*if (usingUMIfiles) { // TODO:
           std::stringstream ss;
           std::getline(*f_umi, line);
           ss.str(line);
           ss >> umi;
           umis.emplace_back(std::move(umi));
-        }
+        }*/
 
         numreads++;
         //flags.push_back(numreads-1); // TODO: CHANGE
