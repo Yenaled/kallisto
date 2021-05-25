@@ -1478,7 +1478,6 @@ void BUSProcessor::operator()() {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
     } else if (mp.useRPV2) {
-      std::cerr << "JKL" << std::endl;
       std::lock_guard<std::mutex> lock(mp.reader_lock);
       std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
       /*if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
@@ -1519,7 +1518,8 @@ void BUSProcessor::operator()() {
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
     if (mp.useRPV2) {
-      mp.rpV2.freeBuffer(readbatch_id);
+      // TODO: CHANGETHIS
+      //mp.rpV2.freeBuffer(readbatch_id);
     }
     
     // update the results, MP acquires the lock
@@ -3344,8 +3344,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   std::vector<uint32_t>& flags,
   std::vector<std::string> &umis, int& read_id,
   bool full) {
-  std::cout << "FEtCH" << std::endl;
-    
+
   std::string line;
   std::string umi;
   readbatch_id += 1; // increase the batch id
