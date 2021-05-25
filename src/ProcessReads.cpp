@@ -3343,6 +3343,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   std::vector<uint32_t>& flags,
   std::vector<std::string> &umis, int& read_id,
   bool full) {
+  std::cout << "FEtCH" << std::endl;
     
   std::string line;
   std::string umi;
