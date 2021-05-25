@@ -1937,7 +1937,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       std::unique_lock<std::mutex> lock(bufferLock);
       if (availableBuffers.size() == 0) {
         availableBuffers.push(new char[bufsize]);
-        std::cerr << "TODO: NEW BUFFER" << storage_limit << ":" << mp.opt.threads <<  std::endl;
+        //std::cerr << "TODO: NEW BUFFER" << storage_limit << ":" << mp.opt.threads <<  std::endl;
       }
       char* buffer = availableBuffers.front(); // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
       availableBuffers.pop();
@@ -1986,6 +1986,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
                     std::vector<uint32_t>& flags,
                     std::vector<std::string>& umis, int &readbatch_id) {
   std::unique_lock<std::mutex> lock(readLock); // TODO: See note below [important]; also mutex is thread-specific so mutex implementation above may need re-working
+  std::cerr  <<  "KK" << std::endl;
   while (true) {
     if (readStorage.empty()) {
       if (finishedReading) {
