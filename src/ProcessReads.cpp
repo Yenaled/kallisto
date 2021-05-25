@@ -1478,6 +1478,7 @@ void BUSProcessor::operator()() {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
     } else if (mp.useRPV2) {
+      std::lock_guard<std::mutex> lock(mp.reader_lock);
       std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
       /*if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
         return;
