@@ -3370,7 +3370,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         for (auto &f : fp) {
           if (f) {
             std::cout << "CLOSING" << std::endl; // TODO:
-            gzclose(f);
+            //gzclose(f); // TODO: TRY NO gzclose!
           }
         }
         // close current umi file
