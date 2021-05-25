@@ -2005,7 +2005,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
   //std::cout << "__" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
-  //lock.unlock();
+  lock.unlock();
   condReadyToPush.notify_one();
   return true;
 } // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
