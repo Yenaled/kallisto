@@ -1943,7 +1943,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
-      bufferLock.unlock();
+      //bufferLock.unlock();
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       //std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
@@ -2005,7 +2005,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   umis = std::move(sData.umis);
   readbatch_id = sData.readbatch_id;
   //std::cout << "__" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
-  lock.unlock();
+  //lock.unlock();
   condReadyToPush.notify_one();
   return true;
 } // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
