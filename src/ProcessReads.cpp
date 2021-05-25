@@ -2021,6 +2021,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
 
 void ReadProcessorV2::freeBuffer(int readbatch_id) {
   std::unique_lock<std::mutex> lock(bufferLock);
+  std::cerr  <<  "free" << std::endl;
   char *buffer = bufferMap[readbatch_id];
   bufferMap.erase(readbatch_id);
   memset(buffer,0,bufsize);
