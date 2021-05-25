@@ -1916,7 +1916,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
-  int storage_limit = mp.opt.threads*501 + 1; // TODO: mp.opt.threads+1
+  int storage_limit = mp.opt.threads*621 + 1; // TODO: mp.opt.threads+1
   //std::chrono::duration<double, std::milli> cc;
   //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
   
@@ -1959,9 +1959,9 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
-        std::cerr << "readlock" <<  std::endl;
+        //std::cerr << "readlock" <<  std::endl;
         while (readStorage.size() > storage_limit) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
-          std::cerr << "TODO: wait" << std::endl;
+          //std::cerr << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }
         readStorage.push(sData);
@@ -1973,7 +1973,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       }
       //std::cerr << "ready-to-pop" <<  std::endl;
       condReadyToPop.notify_one();
-      std::cerr << "end" <<  std::endl;
+      //std::cerr << "end" <<  std::endl;
       
       //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
     }
@@ -2013,7 +2013,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   readbatch_id = sData.readbatch_id;
   //std::cout << "__" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
   lock.unlock();
-  std::cerr  <<  "kk" << std::endl;
+  //std::cerr  <<  "kk" << std::endl;
   condReadyToPush.notify_one();
   return true;
 } // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
@@ -2022,7 +2022,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
 
 void ReadProcessorV2::freeBuffer(int readbatch_id) {
   std::unique_lock<std::mutex> lock(bufferLock);
-  std::cerr  <<  "free" << std::endl;
+  //std::cerr  <<  "free" << std::endl;
   char *buffer = bufferMap[readbatch_id];
   bufferMap.erase(readbatch_id);
   memset(buffer,0,bufsize);
