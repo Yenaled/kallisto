@@ -1914,7 +1914,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
-  int storage_limit = mp.opt.threads*101 + 1; // TODO: mp.opt.threads+1
+  int storage_limit = mp.opt.threads*501 + 1; // TODO: mp.opt.threads+1
   //std::chrono::duration<double, std::milli> cc;
   //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
   
@@ -1943,7 +1943,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
-      //bufferLock.unlock();
+      bufferLock.unlock();
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       //std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
@@ -1955,7 +1955,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
-        while (1 == 2/*readStorage.size() > storage_limit*/) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
+        while (readStorage.size() > storage_limit) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           std::cerr << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
         }
