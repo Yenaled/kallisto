@@ -1946,6 +1946,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       //bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
       bufferLock.unlock();
+      std::cerr << "unlock" <<  std::endl;
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
       //std::cout << "--" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
       SequenceData sData;
@@ -1957,6 +1958,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       sData.readbatch_id = readbatch_id;
       {
         std::unique_lock<std::mutex> lock(readLock);
+        std::cerr << "readlock" <<  std::endl;
         while (readStorage.size() > storage_limit) { // TODO: what if queue full when mp.SR->empty(); won't happen cuz one thread/loop
           std::cerr << "TODO: wait" << std::endl;
           condReadyToPush.wait(lock);
@@ -1968,7 +1970,9 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
       }
+      std::cerr << "ready-to-pop" <<  std::endl;
       condReadyToPop.notify_one();
+      std::cerr << "end" <<  std::endl;
       
       //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
     }
