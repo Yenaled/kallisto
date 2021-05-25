@@ -1970,9 +1970,9 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
         // TODO: std::cout mp.opt.threads and a sequence (to make sure mp reference transferred through...)
         //std::cout << readbatch_id << ":" << mp.opt.threads << std::endl;
       }
-      std::cerr << "ready-to-pop" <<  std::endl;
+      //std::cerr << "ready-to-pop" <<  std::endl;
       condReadyToPop.notify_one();
-      std::cerr << "end" <<  std::endl;
+      //std::cerr << "end" <<  std::endl;
       
       //mp.SR->storeSequences(sData); <- NO, DON'T DO THIS; what about mp.vec.push_back()?????
     }
