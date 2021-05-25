@@ -1939,9 +1939,9 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       }
       char* buffer = availableBuffers.front(); // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
       availableBuffers.pop();
-      bufferLock.unlock();
+      //bufferLock.unlock();
       mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
-      bufferLock.lock();
+      //bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
       bufferLock.unlock();
       //std::cout << seqs.size() << std::endl; // 139810 printed 906 times = good
