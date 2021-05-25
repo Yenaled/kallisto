@@ -1402,14 +1402,6 @@ BUSProcessor::BUSProcessor(const KmerIndex& index, const ProgramOptions& opt, co
        batchSR.umi_files = {opt.umi_files[id]};
      }
      batchSR.paired = !opt.single_end;
-   } else { // TODO:
-     batchSR.current_file = 0;
-     batchSR.paired = !opt.single_end;
-     batchSR.files = opt.files;
-     batchSR.nfiles = opt.files.size();
-     batchSR.readbatch_id = -1;
-     batchSR.state = false;
-     batchSR.reserveNfiles(opt.files.size());
    }
 
    seqs.reserve(bufsize/50);
@@ -1458,7 +1450,6 @@ BUSProcessor::~BUSProcessor() {
 }
 
 void BUSProcessor::operator()() {
-  std::cerr << "TODO: LOL" << std::endl;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1467,8 +1458,8 @@ void BUSProcessor::operator()() {
     std::chrono::duration<double, std::milli> aa;
     std::chrono::duration<double, std::milli> bb;
     std::chrono::duration<double, std::milli> cc;
-    //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
-    //std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point begin0 = std::chrono::steady_clock::now();
     // grab the reader lock
     if (mp.opt.batch_mode && !mp.opt.pseudo_read_files_supplied) {
       if (batchSR.empty()) {
@@ -1484,33 +1475,30 @@ void BUSProcessor::operator()() {
       std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
       aa = end1 - begin1;
     } else {
-      //std::lock_guard<std::mutex> lock(mp.reader_lock);
-      if (batchSR.empty()) {
-        std::cerr << "emptiness" << std::endl;
+      std::lock_guard<std::mutex> lock(mp.reader_lock);
+      if (mp.SR->empty()) {
         // nothing to do
         return;
       } else {
         // get new sequences
-        //std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-        std::cerr << "BEgIN" << std::endl;
-        batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
-        std::cerr << "eND" << std::endl;
-        //std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
-        //aa = end1 -  begin1;
+        std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
+        mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+        std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+        aa = end1 -  begin1;
         //std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
       }
       // release the reader lock
     }
-    //std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
-    //aa0 = end0 - begin0;
+    std::chrono::steady_clock::time_point end0 = std::chrono::steady_clock::now();
+    aa0 = end0 - begin0;
     
-    //pseudobatch.aln.clear();
-    //pseudobatch.batch_id = readbatch_id;
+    pseudobatch.aln.clear();
+    pseudobatch.batch_id = readbatch_id;
     // process our sequences
-    //std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
-    //processBuffer();
-    //std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
-    //bb = end2 - begin2;
+    std::chrono::steady_clock::time_point begin2 = std::chrono::steady_clock::now();
+    processBuffer();
+    std::chrono::steady_clock::time_point end2 = std::chrono::steady_clock::now();
+    bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
     if (mp.useRPV2) {
@@ -1518,17 +1506,17 @@ void BUSProcessor::operator()() {
     }
     
     // update the results, MP acquires the lock
-    //std::vector<std::pair<int, std::string>> ec_umi;
-    //std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
-    //std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
-    //mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
-    //std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
+    std::vector<std::pair<int, std::string>> ec_umi;
+    std::vector<std::pair<std::vector<int>, std::string>> new_ec_umi;
+    std::chrono::steady_clock::time_point begin3 = std::chrono::steady_clock::now();
+    mp.update(counts, newEcs, ec_umi, new_ec_umi, seqs.size() / mp.opt.busOptions.nfiles , flens, bias5, pseudobatch, bv, newB, &bc_len[0], &umi_len[0], id, local_id);
+    std::chrono::steady_clock::time_point end3 = std::chrono::steady_clock::now();
     //std::cout << "UpdateEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end3 - begin3).count()  << std::endl;
-    //cc = end3 - begin3;
-    //std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
-    //aa11 = end11 - begin11;
-    //std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
-    //clear();
+    cc = end3 - begin3;
+    std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
+    aa11 = end11 - begin11;
+    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
+    clear();
   }
 }
 
@@ -3350,14 +3338,8 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
   
   int bufpos = 0;
   int pad = nfiles; //(paired) ? 2 : 1;
-  int xx = 0;
   while (true) {
-    if (xx % 100 == 0) {
-      std::cerr << ":" << xx << std::endl;
-    }
-    ++xx;
     if (!state) { // should we open a file
-      std::cerr << "STATE FALSE" << current_file << ":" << nfiles << std::endl;
       if (current_file >= files.size()) {
         // nothing left
         return false;
@@ -3381,41 +3363,41 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
           l[i] = kseq_read(seq[i]);
           
         }
-        /*if (usingUMIfiles) { // TODO:
+        if (usingUMIfiles) {
           // open new umi file
           f_umi->open(umi_files[current_file]);  
           current_file++;        
-        }*/
+        }
         current_file+=nfiles;
         state = true; 
       }
     }
     // the file is open and we have read into seq1 and seq2
     bool all_l = true;
-    //int bufadd = nfiles;
+    int bufadd = nfiles;
     for (int i = 0; i < nfiles; i++) {
       all_l = all_l && l[i] >= 0;
-      //bufadd += l[i]; // includes seq
+      bufadd += l[i]; // includes seq
     }
     if (all_l) {      
       // fits into the buffer
-      /*if (full) { // TODO:
+      if (full) {
         for (int i = 0; i < nfiles; i++) {
           nl[i] = seq[i]->name.l;
           bufadd += l[i] + nl[i]; // includes name and qual
         }
         bufadd += 2*pad;
-      }*/
+      }
 
-      //if (bufpos+bufadd< limit) { // TODO: PUT IT ALL ON STACK
+      if (bufpos+bufadd< limit) {
 
-        //for (int i = 0; i < nfiles; i++) {
-          //char *pi = buf + bufpos;
-          //memcpy(pi, seq[i]->seq.s, l[i]+1); // TODO: is this slow?
-          //bufpos += l[i]+1;
-          //seqs.emplace_back(pi,l[i]); // TODO: is this slow?
+        for (int i = 0; i < nfiles; i++) {
+          char *pi = buf + bufpos;
+          memcpy(pi, seq[i]->seq.s, l[i]+1);
+          bufpos += l[i]+1;
+          seqs.emplace_back(pi,l[i]);
 
-          /*if (full) { // TODO:
+          if (full) {
             pi = buf + bufpos;
             memcpy(pi, seq[i]->qual.s,l[i]+1);
             bufpos += l[i]+1;
@@ -3424,26 +3406,26 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
             memcpy(pi, seq[i]->name.s, nl[i]+1);
             bufpos += nl[i]+1;
             names.emplace_back(pi, nl[i]);
-          }*/
-        //}
+          }
+        }
 
-        /*if (usingUMIfiles) { // TODO:
+        if (usingUMIfiles) {
           std::stringstream ss;
           std::getline(*f_umi, line);
           ss.str(line);
           ss >> umi;
           umis.emplace_back(std::move(umi));
-        }*/
+        }
 
-        //numreads++;
-        //flags.push_back(numreads-1); // TODO: CHANGE
-      //} else {
-      //  return true; // read it next time
-      //}
+        numreads++;
+        flags.push_back(numreads-1);
+      } else {
+        return true; // read it next time
+      }
 
       // read for the next one
       for (int i = 0; i < nfiles; i++) {
-        l[i] = kseq_read(seq[i]); // TODO: READ 4 files at once??? (or see if kseq/htslib/seqtk latest version?)
+        l[i] = kseq_read(seq[i]);
       }        
     } else {
       state = false; // haven't opened file yet
