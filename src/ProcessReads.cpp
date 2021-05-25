@@ -382,7 +382,15 @@ void MasterProcessor::processReads() {
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
     if (opt.threads > 3) {
-      useRPV2 = true;
+      useRPV2 = true; // TODO: Only use if opt.files.size() > busopt.nfiles
+      // TODO: Set SR->files and rpV2.SR.files and reserveNfiles and divide opt.files.size() / busopt.nfiles = nbatches
+      // if nbatches is even (e.g. 8/2 = 4): assign (nbatches/2)*busopt.nfiles to main and (nbatches/2)*busopt.nfiles to other
+      // if nbatches is odd (e.g. 10/2 = 5): assign ((nbatches+1)/2) to main and ((nbatches-1)/2) to other: 3 vs. 2 (or 13 vs. 12)
+      // Warning: files may have diff. number of reads
+      // How to account? Instead of initializing 50/50, keep adding onto rpv2's queue:
+      // if rpv2 empty; take some from main
+      // 4/2 = 2; 6/2 = 3; 8/2 = 4; 10/2 = 5
+      // aka: initialize: reserveNfiles(busopt.nfiles) to main and then have rpv2 take some (need to mutex)
       std::cerr << "TODO: BEGIN" << std::endl;
       //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
       /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
@@ -390,7 +398,9 @@ void MasterProcessor::processReads() {
       //rpV2.n = 88;
       std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
       //std::cout << "rpv2::  " << rpV2.n << std::endl;
-      workers.emplace_back(std::thread(std::ref(rpV2)));
+      //workers.emplace_back(std::thread(std::ref(rpV2)));
+      //SR->nfiles = opt.busOptions.nfiles; THIS SHOULD ALREADY BE IN PLACE
+      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this))); // TODO: Revert
       for (int i = 1; i < opt.threads; i++) {
         workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
       }
@@ -1469,8 +1479,13 @@ void BUSProcessor::operator()() {
       }
     } else if (mp.useRPV2) {
       std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-      if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
+      /*if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
         return;
+      }*/
+      if (mp.SR->empty()) {
+        return;
+      } else {
+        mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
       }
       std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
       aa = end1 - begin1;
@@ -1482,9 +1497,7 @@ void BUSProcessor::operator()() {
       } else {
         // get new sequences
         std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-        std::cerr << "fetchSequencesBegin" << readbatch_id << std::endl;
         mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
-        std::cerr << "fetchSequencesEnd" << readbatch_id << std::endl;
         std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
         aa = end1 -  begin1;
         //std::cout << "fetchSequencesEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end1 - begin1).count()  << std::endl;
@@ -3356,6 +3369,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         // close the current files
         for (auto &f : fp) {
           if (f) {
+            std::cout << "CLOSING" << std::endl; // TODO:
             gzclose(f);
           }
         }
