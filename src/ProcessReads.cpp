@@ -3364,6 +3364,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
     if (!state) { // should we open a file
       if (current_file >= files.size()) {
         // nothing left
+        std::cout << "nothing  left" << std::endl;
         return false;
       } else {
         // close the current files
@@ -3451,6 +3452,7 @@ bool FastqSequenceReader::fetchSequences(char *buf, const int limit, std::vector
         l[i] = kseq_read(seq[i]);
       }        
     } else {
+      std::cout << "state = false" << std::endl;
       state = false; // haven't opened file yet
     }
   }
