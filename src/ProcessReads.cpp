@@ -392,6 +392,7 @@ void MasterProcessor::processReads() {
       // 4/2 = 2; 6/2 = 3; 8/2 = 4; 10/2 = 5
       // aka: initialize: reserveNfiles(busopt.nfiles) to main and then have rpv2 take some (need to mutex)
       std::cerr << "TODO: BEGIN" << std::endl;
+      SR->reserveNfiles(opt.busOptions.nfiles);
       //ReadProcessorV2 rpV2(index,opt,tc,*this); // PASS THIS  IN AS ARGUMENT TO BUSPROCESSOR OR see "TODO: can we really not put storage in masterprocessor?"
       /// workers.emplace_back(ReadProcessorV2(index,opt,tc,*this)); // THIS WORKS but need to figure out storage in MP...
       //rpV2 = new ReadProcessorV2(index,opt,tc,*this);
@@ -3331,6 +3332,7 @@ void FastqSequenceReader::reset() {
 }
 
 void FastqSequenceReader::reserveNfiles(int n) {
+  nfiles = n;
   fp.resize(nfiles);
   l.resize(nfiles, 0);
   nl.resize(nfiles, 0);
