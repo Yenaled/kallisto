@@ -1986,7 +1986,6 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
                     std::vector<uint32_t>& flags,
                     std::vector<std::string>& umis, int &readbatch_id) {
   std::unique_lock<std::mutex> lock(readLock); // TODO: See note below [important]; also mutex is thread-specific so mutex implementation above may need re-working
-  std::cerr  <<  "KK" << std::endl;
   while (true) {
     if (readStorage.empty()) {
       if (finishedReading) {
@@ -2013,6 +2012,7 @@ bool ReadProcessorV2::fetchSequences(std::vector<std::pair<const char*, int>>& s
   readbatch_id = sData.readbatch_id;
   //std::cout << "__" << seqs.size() << ":" << &(seqs[0].first) << " " << seqs[0].first << seqs[0].second << " " << seqs[1].first << seqs[1].second << std::endl; // 139810 printed 906 times = good
   lock.unlock();
+  std::cerr  <<  "kk" << std::endl;
   condReadyToPush.notify_one();
   return true;
 } // TODO: Maybe a ReadProcessorV2::empty() function [note: need the mutex above/outside the empty() function!!!]
