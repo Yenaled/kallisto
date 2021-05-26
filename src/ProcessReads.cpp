@@ -381,7 +381,7 @@ void MasterProcessor::processReads() {
     }
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
-    if (opt.threads > 3) {
+    if (opt.threads > 3 && opt.files.size() > opt.busOptions.nfiles) {
       useRPV2 = true; // TODO: Only use if opt.files.size() > busopt.nfiles
       // TODO: Set SR->files and rpV2.SR.files and reserveNfiles and divide opt.files.size() / busopt.nfiles = nbatches
       // if nbatches is even (e.g. 8/2 = 4): assign (nbatches/2)*busopt.nfiles to main and (nbatches/2)*busopt.nfiles to other
@@ -399,9 +399,9 @@ void MasterProcessor::processReads() {
       //rpV2.n = 88;
       std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
       //std::cout << "rpv2::  " << rpV2.n << std::endl;
-      //workers.emplace_back(std::thread(std::ref(rpV2)));
+      workers.emplace_back(std::thread(std::ref(rpV2)));
       //SR->nfiles = opt.busOptions.nfiles; THIS SHOULD ALREADY BE IN PLACE
-      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this))); // TODO: Revert
+      //workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this))); // TODO: Revert
       for (int i = 1; i < opt.threads; i++) {
         workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
       }
@@ -1461,6 +1461,8 @@ BUSProcessor::~BUSProcessor() {
 }
 
 void BUSProcessor::operator()() {
+  bool readRPV2 = false;
+  bool RPV2done = false;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1479,18 +1481,25 @@ void BUSProcessor::operator()() {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
     } else if (mp.useRPV2) {
-      std::lock_guard<std::mutex> lock(mp.reader_lock);
-      std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
-      /*if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
-        return;
-      }*/
-      if (mp.SR->empty()) {
-        return;
-      } else {
-        mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+      readRPV2 = !readRPV2 && !RPV2done;
+      if (readRPV2) {
+        if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
+          readRPV2 = false;
+          RPV2done = true;
+          return;
+        }
       }
-      std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
-      aa = end1 - begin1;
+      if (!readRPV2) {
+        std::lock_guard<std::mutex> lock(mp.reader_lock);
+        std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
+        if (mp.SR->empty()) {
+          return;
+        } else {
+          mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
+        }
+        std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now();
+        aa = end1 - begin1;
+      }
     } else {
       std::lock_guard<std::mutex> lock(mp.reader_lock);
       if (mp.SR->empty()) {
@@ -1518,9 +1527,8 @@ void BUSProcessor::operator()() {
     bb = end2 - begin2;
     //std::cout << "BufferEnd" << readbatch_id << " : " << system_clock::now() << " ::$ " << std::chrono::duration_cast<std::chrono::nanoseconds> (end2 - begin2).count()  << std::endl;
 
-    if (mp.useRPV2) {
-      // TODO: CHANGETHIS
-      //mp.rpV2.freeBuffer(readbatch_id);
+    if (mp.useRPV2 && readRPV2) {
+      mp.rpV2.freeBuffer(readbatch_id);
     }
     
     // update the results, MP acquires the lock
@@ -1533,7 +1541,7 @@ void BUSProcessor::operator()() {
     cc = end3 - begin3;
     std::chrono::steady_clock::time_point end11 = std::chrono::steady_clock::now();
     aa11 = end11 - begin11;
-    std::cout << "Batch" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
+    std::cout << "Batch" << readRPV2 << "-" << readbatch_id << " : " << aa0.count() << " : " << aa.count() << " :: " << bb.count() << " ::: " << cc.count() << " : *" << aa11.count() << std::endl;
     clear();
   }
 }
@@ -1896,6 +1904,11 @@ void BUSProcessor::clear() {
 
 ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp, const size_t bufsize) :
   tc(tc), index(index), mp(mp), finishedReading(false) {
+  assert(opt.bus_mode && mp.useRPV2);
+  SR.files = opt.files;
+  SR.nfiles = opt.busOptions.nfiles;
+  SR.reserveNfiles(opt.busOptions.nfiles);
+  SR.paired = !opt.single_end;
   // initialize buffer
   if (bufsize == 0) {
     this->bufsize = mp.bufsize;
@@ -1932,7 +1945,7 @@ ReadProcessorV2::~ReadProcessorV2() {
 }
 
 void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use ReadProcessorV2 as [stack] storage itself!!! <- yes!
-  int storage_limit = mp.opt.threads*621 + 1; // TODO: mp.opt.threads+1
+  int storage_limit = mp.opt.threads + 1; // TODO: mp.opt.threads+1
   //std::chrono::duration<double, std::milli> cc;
   //std::chrono::steady_clock::time_point begin11 = std::chrono::steady_clock::now();
   
@@ -1942,11 +1955,29 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
     int readbatch_id;
     std::vector<std::string> umis;
     // No reader lock since this should only be one thread
-    if (mp.SR->empty()) {
-      std::cout << "TODO: DONE READING" << std::endl;
-      finishedReading = true;
-      condReadyToPop.notify_all();
-      return;
+    if (SR.empty()) { // This thread's sequence reader has nothing left
+      std::lock_guard<std::mutex> lock(mp.reader_lock);
+      auto nfiles = SR.nfiles;
+      assert(nfiles == mp.fSR->nfiles);
+      // If master sequence reader also has nothing left or has no more files to hand off:
+      if (mp.fSR->empty() || mp.fSR->current_file+nfiles >= mp.fSR->files.size()) {
+        std::cerr << "TODO: rpv2 DONE READING" << std::endl;
+        std::cout << "TODO: rpv2 DONE READING" << std::endl;
+        finishedReading = true;
+        condReadyToPop.notify_all();
+        return;
+      } else { // Steal some files from master
+        std::cerr << "TODO: rpv2 NEW BATCH" << std::endl;
+        std::cout << "TODO: rpv2 NEW BATCH" << std::endl;
+        std::vector<std::string> new_files_batch; // TODO: check main SR's current_file
+        auto& master_SR_files = mp.fSR->files; // TODO: make files a protected class member of SequenceReader
+        for (int i = 0; i < nfiles; i++) {
+          new_files_batch.push_back(master_SR_files.back());
+          master_SR_files.pop_back();
+        }
+        std::reverse(new_files_batch.begin(), new_files_batch.end());
+        SR.files.insert(SR.files.end(), new_files_batch.begin(), new_files_batch.end());
+      }
     } else {
       // get new sequences
       //std::cout << "TODO: GETTING NEW SEQs" << std::endl;
@@ -1959,7 +1990,7 @@ void ReadProcessorV2::operator()() { // TODO: seqs stack vs. heap; maybe use Rea
       char* buffer = availableBuffers.front(); // TODO: NEED TO FREE SO SEE IF CAN free(readbatch_id); SEE IF CAN OVERRIDE EXISTING INSTEAD OF CALLING  NEW; SEE IF CAN PUT ON STACK!!
       availableBuffers.pop();
       //bufferLock.unlock();
-      mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
+      SR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // TODO:  WHAT IF  NO MORE LEFT TO READ
       //bufferLock.lock();
       bufferMap.insert(std::pair<int,char*>(readbatch_id,buffer));
       }

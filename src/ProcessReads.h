@@ -201,6 +201,7 @@ public:
   std::condition_variable condReadyToPop;
   std::condition_variable condReadyToPush;
   bool finishedReading;
+  FastqSequenceReader SR;
   
   void operator()();
   bool fetchSequences(std::vector<std::pair<const char*, int>>& seqs,
@@ -220,7 +221,8 @@ public:
       if (opt.bam) {
         SR = new BamSequenceReader(opt);
       } else {
-        SR = new FastqSequenceReader(opt);
+        fSR = new FastqSequenceReader(opt);
+        SR = fSR;
       }
 
       if (opt.batch_mode) {
@@ -280,6 +282,7 @@ public:
 
 
   SequenceReader *SR;
+  FastqSequenceReader *fSR;
   MinCollector& tc;
   KmerIndex& index;
   const Transcriptome& model;
