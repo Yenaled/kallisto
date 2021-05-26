@@ -1914,7 +1914,7 @@ void BUSProcessor::clear() {
 ReadProcessorV2::ReadProcessorV2(const KmerIndex& index, const ProgramOptions& opt, const MinCollector& tc, MasterProcessor& mp, const size_t bufsize) :
   tc(tc), index(index), mp(mp), finishedReading(false) {
   assert(opt.bus_mode && mp.useRPV2);
-  SR.files = opt.files;
+  SR.files.clear();
   SR.nfiles = opt.busOptions.nfiles;
   SR.reserveNfiles(opt.busOptions.nfiles);
   SR.paired = !opt.single_end;
