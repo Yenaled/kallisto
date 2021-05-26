@@ -1481,6 +1481,30 @@ void BUSProcessor::operator()() {
       } else {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
+    } else if (1==1) { // asdfg
+      mp.useRPV2 = false; // asdfg
+      readRPV2 = !readRPV2; // asdfg
+      if (readRPV2) { // asdfg
+        std::lock_guard<std::mutex> lock(mp.reader_lock); // asdfg
+        if (mp.fSR1->empty()) { // asdfg
+          return; // asdfg
+        } else { // asdfg
+          std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now(); // asdfg
+          mp.fSR1->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // asdfg
+          std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now(); // asdfg
+          aa = end1 -  begin1; // asdfg
+        } // asdfg
+      } else { // asdfg
+        std::lock_guard<std::mutex> lock(mp.reader_lock2); // asdfg
+        if (mp.fSR2->empty()) { // asdfg
+          return; // asdfg
+        } else { // asdfg
+          std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now(); // asdfg
+          mp.fSR2->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // asdfg
+          std::chrono::steady_clock::time_point end1 = std::chrono::steady_clock::now(); // asdfg
+          aa = end1 -  begin1; // asdfg
+        } // asdfg
+      } // asdfg
     } else if (mp.useRPV2) {
       if (RPV2done && mpSRdone) {
         return;

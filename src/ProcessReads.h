@@ -222,6 +222,12 @@ public:
         SR = new BamSequenceReader(opt);
       } else {
         fSR = new FastqSequenceReader(opt);
+        fSR1 = new FastqSequenceReader(opt); // asdfg
+        fSR1->files.pop_back(); // asdfg
+        fSR1->files.pop_back(); // asdfg
+        fSR2 = new FastqSequenceReader(opt); // asdfg
+        fSR2->files.erase(fSR2->files.begin()); // asdfg
+        fSR2->files.erase(fSR2->files.begin()); // asdfg
         SR = fSR;
       }
 
@@ -278,11 +284,14 @@ public:
   }
 
   std::mutex reader_lock;
+  std::mutex reader_lock2; // asdfg
   std::mutex writer_lock;
 
 
   SequenceReader *SR;
   FastqSequenceReader *fSR;
+  FastqSequenceReader *fSR1; // asdfg
+  FastqSequenceReader *fSR2; // asdfg
   MinCollector& tc;
   KmerIndex& index;
   const Transcriptome& model;
