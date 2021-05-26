@@ -399,7 +399,10 @@ void MasterProcessor::processReads() {
       //rpV2.n = 88;
       std::cout << "sz::  " <<  rpV2.readStorage.size() << std::endl;
       //std::cout << "rpv2::  " << rpV2.n << std::endl;
+      if (1 == 0) { // asdfg
       workers.emplace_back(std::thread(std::ref(rpV2)));
+      } // asdfg
+      workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this))); // asdfg
       //SR->nfiles = opt.busOptions.nfiles; THIS SHOULD ALREADY BE IN PLACE
       //workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this))); // TODO: Revert
       for (int i = 1; i < opt.threads; i++) {
