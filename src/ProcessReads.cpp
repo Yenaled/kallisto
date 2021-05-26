@@ -1461,8 +1461,9 @@ BUSProcessor::~BUSProcessor() {
 }
 
 void BUSProcessor::operator()() {
-  bool readRPV2 = false;
+  bool readRPV2 = false; // TODO: refactor and prefix these with rpv2_
   bool RPV2done = false;
+  bool mpSRdone = false;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1481,19 +1482,27 @@ void BUSProcessor::operator()() {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
     } else if (mp.useRPV2) {
-      readRPV2 = !readRPV2 && !RPV2done;
+      if (RPV2done && mpSRdone) {
+        return;
+      }
+      readRPV2 = !readRPV2; // toggle true/false every iteration
+      readRPV2 = (readRPV2 && !RPV2done) || mpSRdone; // always true if mpSRdone; always false if RPV2done
       if (readRPV2) {
         if (!mp.rpV2.fetchSequences(seqs, names, quals, flags, umis, readbatch_id)) { // TODO: UNRAVEL SEQUENCE BATCH!!
-          readRPV2 = false;
           RPV2done = true;
-          return;
+          std::cerr << "TODO: RPV2done" << std::endl;
+          std::cout << "TODO: RPV2done" << std::endl;
+          continue;
         }
       }
       if (!readRPV2) {
         std::lock_guard<std::mutex> lock(mp.reader_lock);
         std::chrono::steady_clock::time_point begin1 = std::chrono::steady_clock::now();
         if (mp.SR->empty()) {
-          return;
+          mpSRdone = true;
+          std::cerr << "TODO: mpSRdone" << std::endl;
+          std::cout << "TODO: mpSRdone" << std::endl;
+          continue;
         } else {
           mp.SR->fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion);
         }
