@@ -221,14 +221,16 @@ public:
       if (opt.bam) {
         SR = new BamSequenceReader(opt);
       } else {
-        fSR = new FastqSequenceReader(opt);
+        /*FastqSequenceReader* fSR = new FastqSequenceReader(opt);
+        FSRs.push_back(fSR);
         fSR1 = new FastqSequenceReader(opt); // asdfg
         fSR1->files.pop_back(); // asdfg
         fSR1->files.pop_back(); // asdfg
         fSR2 = new FastqSequenceReader(opt); // asdfg
         fSR2->files.erase(fSR2->files.begin()); // asdfg
         fSR2->files.erase(fSR2->files.begin()); // asdfg
-        SR = fSR;
+        SR = fSR;*/
+        SR = new FastqSequenceReader(opt);
       }
 
       if (opt.batch_mode) {
@@ -284,11 +286,14 @@ public:
   }
 
   std::mutex reader_lock;
+  std::vector<std::mutex> parallel_bus_reader_locks; // jkljkl
+  bool parallel_bus_read; // jkljkl
   std::mutex reader_lock2; // asdfg
   std::mutex writer_lock;
 
 
   SequenceReader *SR;
+  std::vector<FastqSequenceReader> FSRs; // jkljkl
   FastqSequenceReader *fSR;
   FastqSequenceReader *fSR1; // asdfg
   FastqSequenceReader *fSR2; // asdfg

@@ -381,7 +381,24 @@ void MasterProcessor::processReads() {
     }
   } else if (opt.bus_mode) {
     std::vector<std::thread> workers;
-    if (opt.threads > 3 && opt.files.size() > opt.busOptions.nfiles) {
+    parallel_bus_read = opt.threads > 1 && opt.files.size() > opt.busOptions.nfiles && !opt.num && !opt.pseudobam; // jkljkl
+    if (parallel_bus_read) { // jkljkl
+      delete SR; // jkljkl
+      SR = nullptr; // jkljkl
+      assert(opt.files.size() % opt.busOptions.nfiles == 0); // jkljkl
+      int nbatches = opt.files.size() / opt.busOptions.nfiles; // jkljkl
+      std::vector<std::mutex> mutexes(nbatches); // jkljkl
+      parallel_bus_reader_locks.swap(mutexes); // jkljkl
+      for (int i = 0; i < nbatches; i++) { // jkljkl
+        FastqSequenceReader fSR(opt); // jkljkl
+        fSR.files.erase(fSR.files.begin(), fSR.files.begin()+opt.busOptions.nfiles*i); // jkljkl
+        fSR.files.erase(fSR.files.begin()+opt.busOptions.nfiles*(i+1), fSR.files.end()); // jkljkl
+        assert(fSR.files.size() == opt.busOptions.nfiles); // jkljkl
+        FSRs.push_back(std::move(fSR)); // jkljkl
+      } // jkljkl
+    } // jkljkl
+    
+    /*if (opt.threads > 3 && opt.files.size() > opt.busOptions.nfiles) {
       useRPV2 = true; // TODO: Only use if opt.files.size() > busopt.nfiles
       // TODO: Set SR->files and rpV2.SR.files and reserveNfiles and divide opt.files.size() / busopt.nfiles = nbatches
       // if nbatches is even (e.g. 8/2 = 4): assign (nbatches/2)*busopt.nfiles to main and (nbatches/2)*busopt.nfiles to other
@@ -412,11 +429,11 @@ void MasterProcessor::processReads() {
       //std::cout << "TODO: FINISHED THREAD JOINS" << rpV2.readStorage.size()  << std::endl;
       //std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
       //delete rpV2;
-    } else {
+    } else {*/
       for (int i = 0; i < opt.threads; i++) {
         workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
       }
-    }
+    /*}*/
 
     // let the workers do their thing
     for (int i = 0; i < opt.threads; i++) {
@@ -1467,6 +1484,8 @@ void BUSProcessor::operator()() {
   bool readRPV2 = false; // TODO: refactor and prefix these with rpv2_
   bool RPV2done = false;
   bool mpSRdone = false;
+  uint64_t parallel_bus_read_counter = 0;
+  int parallel_bus_read_nempty = 0;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1484,6 +1503,19 @@ void BUSProcessor::operator()() {
       } else {
         batchSR.fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam );
       }
+    } else if (mp.opt.bus_mode && mp.parallel_bus_read) { // jkljkl
+      int nbatches = mp.opt.files.size() / mp.opt.busOptions.nfiles; // jkljkl
+      int i = parallel_bus_read_counter % nbatches; // jkljkl
+      if (parallel_bus_read_nempty >= nbatches) { // jkljkl
+        return; // jkljkl
+      } // jkljkl
+      parallel_bus_read_counter++; // jkljkl
+      std::lock_guard<std::mutex> lock(mp.parallel_bus_reader_locks[i]); // jkljkl
+      if (mp.FSRs[i].empty()) { // jkljkl
+        parallel_bus_read_nempty++; // jkljkl
+        continue; // jkljkl
+      } // jkljkl
+      mp.FSRs[i].fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // jkljkl
     } else if (1==1) { // asdfg
       mp.useRPV2 = false; // asdfg
       readRPV2 = !readRPV2; // asdfg
