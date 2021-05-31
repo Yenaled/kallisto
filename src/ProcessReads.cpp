@@ -380,9 +380,11 @@ void MasterProcessor::processReads() {
       }
     }
   } else if (opt.bus_mode) {
+    std::cout << "000" << std::endl;
     std::vector<std::thread> workers;
     parallel_bus_read = opt.threads > 1 && opt.files.size() > opt.busOptions.nfiles && !opt.num && !opt.pseudobam; // jkljkl
     if (parallel_bus_read) { // jkljkl
+      std::cout << "111" << std::endl;
       delete SR; // jkljkl
       SR = nullptr; // jkljkl
       assert(opt.files.size() % opt.busOptions.nfiles == 0); // jkljkl
@@ -390,12 +392,14 @@ void MasterProcessor::processReads() {
       std::vector<std::mutex> mutexes(nbatches); // jkljkl
       parallel_bus_reader_locks.swap(mutexes); // jkljkl
       for (int i = 0; i < nbatches; i++) { // jkljkl
+        std::cout << "222" << std::endl;
         FastqSequenceReader fSR(opt); // jkljkl
         fSR.files.erase(fSR.files.begin(), fSR.files.begin()+opt.busOptions.nfiles*i); // jkljkl
         fSR.files.erase(fSR.files.begin()+opt.busOptions.nfiles*(i+1), fSR.files.end()); // jkljkl
         assert(fSR.files.size() == opt.busOptions.nfiles); // jkljkl
         FSRs.push_back(std::move(fSR)); // jkljkl
       } // jkljkl
+      std::cout << "333" << std::endl;
     } // jkljkl
     
     /*if (opt.threads > 3 && opt.files.size() > opt.busOptions.nfiles) {
@@ -434,11 +438,13 @@ void MasterProcessor::processReads() {
         workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
       }
     /*}*/
-
+    std::cout << "444" << std::endl;
+    
     // let the workers do their thing
     for (int i = 0; i < opt.threads; i++) {
       workers[i].join(); //wait for them to finish
     }
+    std::cout << "555" << std::endl;
     
     // now handle the modification of the mincollector
     for (int i = 0; i < bus_ecmap.size(); i++) {
