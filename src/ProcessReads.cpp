@@ -439,6 +439,8 @@ void MasterProcessor::processReads() {
       //std::cout << "TODO:: FINISHED THREAD JOINS " << rpV2.n << std::endl;
       //delete rpV2;
     } else {*/
+    std::cout << "xxx" << std::endl;
+    
       for (int i = 0; i < opt.threads; i++) {
         workers.emplace_back(std::thread(BUSProcessor(index,opt,tc,*this)));
       }
@@ -447,6 +449,8 @@ void MasterProcessor::processReads() {
     
     // let the workers do their thing
     for (int i = 0; i < opt.threads; i++) {
+      std::cout << "4jkjk" << std::endl;
+      
       workers[i].join(); //wait for them to finish
     }
     std::cout << "555" << std::endl;
@@ -1497,6 +1501,7 @@ void BUSProcessor::operator()() {
   bool mpSRdone = false;
   uint64_t parallel_bus_read_counter = 0; // jkljkl
   std::unordered_set<int> parallel_bus_read_empty; // jkljkl
+  std::cout << "666" <<  std::endl;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
