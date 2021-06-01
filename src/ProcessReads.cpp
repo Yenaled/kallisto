@@ -1495,8 +1495,8 @@ void BUSProcessor::operator()() {
   bool readRPV2 = false; // TODO: refactor and prefix these with rpv2_
   bool RPV2done = false;
   bool mpSRdone = false;
-  uint64_t parallel_bus_read_counter = 0;
-  std::unordered_set<int> parallel_bus_read_empty;
+  uint64_t parallel_bus_read_counter = 0; // jkljkl
+  std::unordered_set<int> parallel_bus_read_empty; // jkljkl
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1527,7 +1527,7 @@ void BUSProcessor::operator()() {
         continue; // jkljkl
       } // jkljkl
       mp.FSRs[i].fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // jkljkl
-    } else if (1==1) { // asdfg
+    } else if (1==2) { // asdfg
       mp.useRPV2 = false; // asdfg
       readRPV2 = !readRPV2; // asdfg
       if (mpSRdone && RPV2done) { // asdfg
@@ -1556,7 +1556,7 @@ void BUSProcessor::operator()() {
           aa = end1 -  begin1; // asdfg
         } // asdfg
       } // asdfg
-    } else if (mp.useRPV2) {
+    } else if (mp.useRPV2 && 1 == 2) {
       if (RPV2done && mpSRdone) {
         return;
       }
