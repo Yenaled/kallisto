@@ -392,12 +392,16 @@ void MasterProcessor::processReads() {
       std::vector<std::mutex> mutexes(nbatches); // jkljkl
       parallel_bus_reader_locks.swap(mutexes); // jkljkl
       for (int i = 0; i < nbatches; i++) { // jkljkl
-        std::cout << "222" << std::endl;
+        std::cout << "222:" << nbatches << ":" << i << ":" << opt.busOptions.nfiles << ":" << opt.files.size() << std::endl;
         FastqSequenceReader fSR(opt); // jkljkl
+        std::cout << "22212:" << nbatches << std::endl;
         fSR.files.erase(fSR.files.begin(), fSR.files.begin()+opt.busOptions.nfiles*i); // jkljkl
+        std::cout << "22213:" << nbatches << std::endl;
         fSR.files.erase(fSR.files.begin()+opt.busOptions.nfiles*(i+1), fSR.files.end()); // jkljkl
+        std::cout << "22214:" << nbatches << std::endl;
         assert(fSR.files.size() == opt.busOptions.nfiles); // jkljkl
         FSRs.push_back(std::move(fSR)); // jkljkl
+        std::cout << "22215:" << nbatches << std::endl;
       } // jkljkl
       std::cout << "333" << std::endl;
     } // jkljkl
