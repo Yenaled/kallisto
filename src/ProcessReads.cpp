@@ -1495,7 +1495,7 @@ void BUSProcessor::operator()() {
   bool RPV2done = false;
   bool mpSRdone = false;
   uint64_t parallel_bus_read_counter = 0;
-  int parallel_bus_read_nempty = 0;
+  std::unordered_set<int> parallel_bus_read_empty;
   while (true) {
     int readbatch_id;
     std::vector<std::string> umis;
@@ -1516,13 +1516,13 @@ void BUSProcessor::operator()() {
     } else if (mp.opt.bus_mode && mp.parallel_bus_read) { // jkljkl
       int nbatches = mp.opt.files.size() / mp.opt.busOptions.nfiles; // jkljkl
       int i = parallel_bus_read_counter % nbatches; // jkljkl
-      if (parallel_bus_read_nempty >= nbatches) { // jkljkl
+      if (parallel_bus_read_empty.size() >= nbatches) { // jkljkl
         return; // jkljkl
       } // jkljkl
       parallel_bus_read_counter++; // jkljkl
       std::lock_guard<std::mutex> lock(mp.parallel_bus_reader_locks[i]); // jkljkl
       if (mp.FSRs[i].empty()) { // jkljkl
-        parallel_bus_read_nempty++; // jkljkl
+        parallel_bus_read_empty.emplace(i);
         continue; // jkljkl
       } // jkljkl
       mp.FSRs[i].fetchSequences(buffer, bufsize, seqs, names, quals, flags, umis, readbatch_id, mp.opt.pseudobam || mp.opt.fusion); // jkljkl
