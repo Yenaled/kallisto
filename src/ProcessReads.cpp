@@ -383,7 +383,7 @@ void MasterProcessor::processReads() {
   } else if (opt.bus_mode) {
     std::cout << "000" << std::endl;
     std::vector<std::thread> workers;
-    parallel_bus_read = opt.threads > 1 && opt.files.size() > opt.busOptions.nfiles && !opt.num && !opt.pseudobam; // jkljkl
+    parallel_bus_read = opt.threads > 4 && opt.files.size() > opt.busOptions.nfiles && !opt.num && !opt.pseudobam; // jkljkl
     if (parallel_bus_read) { // jkljkl
       std::cout << "111" << std::endl;
       delete SR; // jkljkl
